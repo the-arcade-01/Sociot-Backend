@@ -1,19 +1,25 @@
 {
-  "name": "fedit-backend",
+  "name": "sociot-backend",
   "version": "1.0.0",
-  "description": "Backend of FedIt website",
+  "description": "Backend of Sociot website",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "devStart": "nodemon server.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/the-arcade-01/FedIt-Backend.git"
+    "url": "git+https://github.com/the-arcade-01/Sociot-Backend.git"
   },
   "author": "Aashish Koshti",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/the-arcade-01/FedIt-Backend/issues"
+    "url": "https://github.com/the-arcade-01/Sociot-Backend/issues"
   },
-  "homepage": "https://github.com/the-arcade-01/FedIt-Backend#readme"
+  "homepage": "https://github.com/the-arcade-01/Sociot-Backend#readme",
+  "dependencies": {
+    "express": "^4.17.2",
+    "nodemon": "^2.0.15"
+  }
 }
