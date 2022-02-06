@@ -81,8 +81,41 @@ const register_user = async (req, res, next) => {
 };
 
 const login_user = async (req, res, next) => {
-  return res.send({
-    message: "login",
+  const validation = loginValidationSchema.validate(req.body);
+  if (validation.error) {
+    return res.status(400).json({
+      error: validation.error.details[0].message,
+    });
+  }
+
+  const { email, password } = req.body;
+
+  const user = await User.findOne({
+    email: email,
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      message: "Email dosn't exists",
+    });
+  }
+
+  const validPassword = await bcrypt.compare(password, user.password);
+
+  if (!validPassword) {
+    return res.status(400).json({
+      message: "Invalid password",
+    });
+  }
+
+  //   create and assign token
+
+  const token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY);
+
+  res.header("auth-token", token);
+
+  return res.status(200).json({
+    token: token,
   });
 };
 
