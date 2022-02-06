@@ -24,7 +24,9 @@ app.use(express.json());
 // routes
 
 import route from "./api/routes/route.js";
+import authRoutes from "./api/routes/authRoutes.js";
 
 app.use("/", route);
+app.use("/api/", authRoutes);
 
 export default app;
