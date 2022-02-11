@@ -12,6 +12,7 @@ router.get("/", (req, res, next) => {
 router.get("/private", verifyToken, (req, res, next) => {
   return res.send({
     message: "Private Route",
+    data: req.user,
   });
 });
 

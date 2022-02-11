@@ -13,8 +13,6 @@ const userValidationSchema = Joi.object({
   email: Joi.string().required().email(),
 
   password: Joi.string().min(3).required(),
-
-  repeat_password: Joi.ref("password"),
 });
 
 const loginValidationSchema = Joi.object({
@@ -116,7 +114,31 @@ const login_user = async (req, res, next) => {
 
   return res.status(200).json({
     token: token,
+    user: {
+      id: user._id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+    },
   });
 };
 
-export default { register_user, login_user };
+const verify_user = async (req, res, next) => {
+  const userID = req.user._id;
+
+  const userData = await User.findById(userID);
+
+  if (!userData) {
+    return res.status(400).json({ message: "Invalid user" });
+  }
+  return res.status(200).json({
+    user: {
+      id: userData._id,
+      name: userData.name,
+      username: userData.username,
+      email: userData.email,
+    },
+  });
+};
+
+export default { register_user, login_user, verify_user };
