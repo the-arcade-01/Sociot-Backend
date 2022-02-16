@@ -25,8 +25,10 @@ app.use(express.json());
 
 import route from "./api/routes/route.js";
 import authRoutes from "./api/routes/authRoutes.js";
+import postRoutes from "./api/routes/postRoutes.js";
 
 app.use("/", route);
 app.use("/api/", authRoutes);
+app.use("/api/posts", postRoutes);
 
 export default app;
