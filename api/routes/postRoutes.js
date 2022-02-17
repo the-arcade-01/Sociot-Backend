@@ -5,9 +5,7 @@ import verifyToken from "../controllers/verifyToken.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, (req, res, next) => {
-  return res.send({ message: "from posts" });
-});
+router.get("/", postControllers.get_all);
 
 router.post("/create", verifyToken, postControllers.create_post);
 
