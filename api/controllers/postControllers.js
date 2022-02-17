@@ -22,6 +22,27 @@ const get_all = async (req, res, next) => {
     });
 };
 
+const get_one = async (req, res, next) => {
+  const { _id } = req.params;
+  await Post.findOne({ _id: _id })
+    .populate({
+      path: "_creator",
+      select: "name email",
+    })
+    .then((post) => {
+      console.log(post);
+      return res.status(200).json({
+        post,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).json({
+        error: err,
+      });
+    });
+};
+
 const create_post = async (req, res, next) => {
   const { title, text } = req.body;
 
@@ -48,4 +69,48 @@ const create_post = async (req, res, next) => {
     });
 };
 
-export default { create_post, get_all };
+const update_post = async (req, res, next) => {
+  const { _id } = req.params;
+  const { title, text } = req.body;
+
+  const updatedPost = { _id: _id, title, text, _creator: req.user._id };
+
+  await Post.findByIdAndUpdate(_id, updatedPost, { new: true })
+    .then((post) => {
+      console.log(post);
+      return res.status(200).json({
+        message: "Updated Post",
+        post,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).json({
+        error: err,
+      });
+    });
+};
+
+const delete_post = async (req, res, next) => {
+  const { _id } = req.params;
+  await Post.findOneAndDelete({ _id: _id })
+    .populate({
+      path: "_creator",
+      select: "name email",
+    })
+    .then((post) => {
+      console.log(post);
+      return res.status(200).json({
+        message: "Post deleted",
+        post,
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(500).json({
+        error: error,
+      });
+    });
+};
+
+export default { create_post, get_all, delete_post, get_one, update_post };
