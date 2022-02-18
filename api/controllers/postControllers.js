@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 import Post from "../models/Post.js";
+import Comment from "../models/Comment.js";
 
 const get_all = async (req, res, next) => {
   await Post.find()
@@ -100,8 +101,9 @@ const delete_post = async (req, res, next) => {
       path: "_creator",
       select: "name email",
     })
-    .then((post) => {
+    .then(async (post) => {
       console.log(post);
+      await Comment.deleteMany({ _post: _id });
       return res.status(200).json({
         message: "Post deleted",
         post,

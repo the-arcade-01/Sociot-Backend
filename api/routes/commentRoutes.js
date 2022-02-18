@@ -4,12 +4,10 @@ import verifyToken from "../controllers/verifyToken.js";
 
 const router = express.Router();
 
-router.get("/", (req, res, next) => {
-  return res.send({
-    message: "from comment",
-  });
-});
+router.get("/user", verifyToken, commentControllers.get_user_comments);
 
 router.post("/create", verifyToken, commentControllers.create_comment);
+
+router.delete("/:_id", verifyToken, commentControllers.delete_comment);
 
 export default router;
