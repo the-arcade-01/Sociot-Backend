@@ -4,6 +4,13 @@ import cors from "cors";
 import morgan from "morgan";
 import mongoose from "mongoose";
 
+// routes
+
+import route from "./api/routes/route.js";
+import authRoutes from "./api/routes/authRoutes.js";
+import postRoutes from "./api/routes/postRoutes.js";
+import commmentRoutes from "./api/routes/commentRoutes.js";
+
 dotenv.config();
 
 const app = express();
@@ -23,12 +30,9 @@ app.use(express.json());
 
 // routes
 
-import route from "./api/routes/route.js";
-import authRoutes from "./api/routes/authRoutes.js";
-import postRoutes from "./api/routes/postRoutes.js";
-
 app.use("/", route);
 app.use("/api/", authRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/comments", commmentRoutes);
 
 export default app;

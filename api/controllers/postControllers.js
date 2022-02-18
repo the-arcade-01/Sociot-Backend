@@ -8,6 +8,7 @@ const get_all = async (req, res, next) => {
       path: "_creator",
       select: "name email",
     })
+    .populate({ path: "_comments", select: "text _creator createdAt" })
     .then((posts) => {
       return res.status(200).json({
         count: posts.length,
@@ -29,6 +30,7 @@ const get_one = async (req, res, next) => {
       path: "_creator",
       select: "name email",
     })
+    .populate({ path: "_comments", select: "text _creator createdAt" })
     .then((post) => {
       console.log(post);
       return res.status(200).json({
