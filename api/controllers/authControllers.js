@@ -49,6 +49,9 @@ const register_user = async (req, res, next) => {
 
   const { name, username, email, password } = req.body;
 
+  const profileImage =
+    req.file != null ? req.file.path : "userUploads/default-user.png";
+
   //   hash password
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(password, salt);
@@ -59,6 +62,7 @@ const register_user = async (req, res, next) => {
     username,
     email,
     password: hashPassword,
+    profileImage,
   });
 
   await user

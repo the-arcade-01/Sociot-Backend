@@ -53,6 +53,7 @@ const create_post = async (req, res, next) => {
     _id: new mongoose.Types.ObjectId(),
     title,
     text,
+    postImage: req.file.path,
     _creator: req.user._id,
   });
 
