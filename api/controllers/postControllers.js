@@ -5,9 +5,10 @@ import Comment from "../models/Comment.js";
 
 const get_all = async (req, res, next) => {
   await Post.find()
+    .sort({ _id: -1 })
     .populate({
       path: "_creator",
-      select: "name email",
+      select: "name email username",
     })
     .populate({ path: "_comments", select: "text _creator createdAt" })
     .then((posts) => {
@@ -29,7 +30,7 @@ const get_one = async (req, res, next) => {
   await Post.findOne({ _id: _id })
     .populate({
       path: "_creator",
-      select: "name email",
+      select: "name email username",
     })
     .populate({ path: "_comments", select: "text _creator createdAt" })
     .then((post) => {
@@ -47,13 +48,12 @@ const get_one = async (req, res, next) => {
 };
 
 const create_post = async (req, res, next) => {
-  const { title, text } = req.body;
-
+  const { text } = req.body;
+  const image = req.file ? req.file.path : null;
   const post = new Post({
     _id: new mongoose.Types.ObjectId(),
-    title,
     text,
-    postImage: req.file.path,
+    postImage: image,
     _creator: req.user._id,
   });
 
@@ -75,9 +75,9 @@ const create_post = async (req, res, next) => {
 
 const update_post = async (req, res, next) => {
   const { _id } = req.params;
-  const { title, text } = req.body;
+  const { text } = req.body;
 
-  const updatedPost = { _id: _id, title, text, _creator: req.user._id };
+  const updatedPost = { _id: _id, text, _creator: req.user._id };
 
   await Post.findByIdAndUpdate(_id, updatedPost, { new: true })
     .then((post) => {

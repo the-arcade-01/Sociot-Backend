@@ -23,7 +23,7 @@ const CommentSchema = new mongoose.Schema({
 const autoPopulateCreator = function (next) {
   this.populate({
     path: "_creator",
-    select: "_id name email",
+    select: "_id name email username",
   });
   next();
 };
