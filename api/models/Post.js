@@ -6,6 +6,14 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  link: {
+    type: String,
+  },
+  category: {
+    type: String,
+    required: true,
+    default: "All",
+  },
   postImage: { type: String },
   createdAt: {
     type: Date,

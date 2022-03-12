@@ -21,6 +21,7 @@ const get_user_posts = async (req, res, next) => {
 };
 
 const get_all = async (req, res, next) => {
+  const { category } = req.params;
   await Post.find()
     .sort({ _id: -1 })
     .populate({
@@ -65,11 +66,13 @@ const get_one = async (req, res, next) => {
 };
 
 const create_post = async (req, res, next) => {
-  const { text } = req.body;
+  const { text, link, category } = req.body;
   const image = req.file ? req.file.path : null;
   const post = new Post({
     _id: new mongoose.Types.ObjectId(),
     text,
+    category: category,
+    link: link ? link : null,
     postImage: image,
     _creator: req.user._id,
   });
