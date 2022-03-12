@@ -35,6 +35,8 @@ const upload = multer({
   fileFilter: fileFilter,
 });
 
+router.get("/userPosts", verifyToken, postControllers.get_user_posts);
+
 router.get("/", postControllers.get_all);
 
 router.get("/:_id", verifyToken, postControllers.get_one);

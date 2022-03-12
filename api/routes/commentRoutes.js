@@ -4,7 +4,7 @@ import verifyToken from "../controllers/verifyToken.js";
 
 const router = express.Router();
 
-router.get("/user", verifyToken, commentControllers.get_user_comments);
+router.get("/userComments", verifyToken, commentControllers.get_user_comments);
 
 router.post("/create", verifyToken, commentControllers.create_comment);
 

@@ -3,6 +3,23 @@ import mongoose from "mongoose";
 import Post from "../models/Post.js";
 import Comment from "../models/Comment.js";
 
+const get_user_posts = async (req, res, next) => {
+  const _id = req.user._id;
+  await Post.find({ _creator: _id })
+    .populate({ path: "_creator", select: "name username _id email" })
+    .then((posts) => {
+      return res.status(200).json({
+        posts,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).json({
+        error: err,
+      });
+    });
+};
+
 const get_all = async (req, res, next) => {
   await Post.find()
     .sort({ _id: -1 })
@@ -118,4 +135,11 @@ const delete_post = async (req, res, next) => {
     });
 };
 
-export default { create_post, get_all, delete_post, get_one, update_post };
+export default {
+  create_post,
+  get_all,
+  delete_post,
+  get_one,
+  update_post,
+  get_user_posts,
+};

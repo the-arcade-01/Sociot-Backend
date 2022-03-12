@@ -5,6 +5,7 @@ import Post from "../models/Post.js";
 const get_user_comments = async (req, res, next) => {
   const _id = req.user._id;
   await Comment.find({ _creator: _id })
+    .populate({ path: "_creator", select: "name username email" })
     .then((comments) => {
       return res.status(200).json({
         comments,
