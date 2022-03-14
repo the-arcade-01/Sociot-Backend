@@ -6,6 +6,7 @@ import Comment from "../models/Comment.js";
 const get_user_posts = async (req, res, next) => {
   const _id = req.user._id;
   await Post.find({ _creator: _id })
+    .sort({ _id: -1 })
     .populate({ path: "_creator", select: "name username _id email" })
     .then((posts) => {
       return res.status(200).json({
