@@ -137,7 +137,7 @@ const verify_user = async (req, res, next) => {
   }
   return res.status(200).json({
     user: {
-      id: userData._id,
+      _id: userData._id,
       name: userData.name,
       username: userData.username,
       email: userData.email,
