@@ -8,6 +8,7 @@ const get_user_posts = async (req, res, next) => {
   await Post.find({ _creator: _id })
     .sort({ _id: -1 })
     .populate({ path: "_creator", select: "name username _id email" })
+    .populate({ path: "_comments", select: "text _creator createdAt" })
     .then((posts) => {
       return res.status(200).json({
         posts,
@@ -22,7 +23,6 @@ const get_user_posts = async (req, res, next) => {
 };
 
 const get_all = async (req, res, next) => {
-  const { category } = req.params;
   await Post.find()
     .sort({ _id: -1 })
     .populate({
@@ -96,24 +96,21 @@ const create_post = async (req, res, next) => {
 
 const update_post = async (req, res, next) => {
   const { _id } = req.params;
-  const { text } = req.body;
 
-  const updatedPost = { _id: _id, text, _creator: req.user._id };
+  const post = await Post.findById(_id);
+  const index = post.likes.findIndex((id) => id === String(req.user._id));
 
-  await Post.findByIdAndUpdate(_id, updatedPost, { new: true })
-    .then((post) => {
-      console.log(post);
-      return res.status(200).json({
-        message: "Updated Post",
-        post,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      return res.status(500).json({
-        error: err,
-      });
-    });
+  if (index === -1) {
+    post.likes.push(req.user._id);
+  } else {
+    post.likes = post.likes.filter((id) => id !== String(req.user._id));
+  }
+  const updatedPost = await Post.findByIdAndUpdate(_id, post, { new: true });
+
+  return res.status(200).json({
+    message: "updated",
+    updatedPost,
+  });
 };
 
 const delete_post = async (req, res, next) => {
