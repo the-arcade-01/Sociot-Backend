@@ -25,7 +25,7 @@ const register_user = async (req, res, next) => {
   const validation = userValidationSchema.validate(req.body);
   if (validation.error) {
     return res.status(400).json({
-      error: validation.error.details[0].message,
+      message: validation.error.details[0].message,
     });
   }
 
@@ -86,7 +86,7 @@ const login_user = async (req, res, next) => {
   const validation = loginValidationSchema.validate(req.body);
   if (validation.error) {
     return res.status(400).json({
-      error: validation.error.details[0].message,
+      message: validation.error.details[0].message,
     });
   }
 
