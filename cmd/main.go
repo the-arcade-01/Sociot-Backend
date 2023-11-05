@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	Controller "sociot/internal/controller"
+	controller "sociot/internal/controller"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -20,10 +20,6 @@ func CreateServer() *Server {
 	return server
 }
 
-func (server *Server) MountHandlers() {
-	server.Router.Get("/greet", Controller.Greet)
-}
-
 func (server *Server) MountMiddlerwares() {
 	server.Router.Use(middleware.Logger)
 	server.Router.Use(middleware.CleanPath)
@@ -38,6 +34,10 @@ func (server *Server) MountMiddlerwares() {
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
+}
+
+func (server *Server) MountHandlers() {
+	server.Router.Get("/greet", controller.Greet)
 }
 
 func main() {

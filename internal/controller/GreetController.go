@@ -1,11 +1,13 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
+	"sociot/internal/entity"
 )
 
 func Greet(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("Hello, World")
+	response := entity.Response{
+		Data: "Hello World!!",
+	}
+	entity.ResponseWithJSON(w, http.StatusOK, response)
 }

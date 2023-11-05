@@ -1,7 +1,44 @@
 package controller
 
-import "fmt"
+import (
+	"net/http"
+	service "sociot/internal/service"
+)
 
-func PostController() {
-	fmt.Println("Post controller")
+type PostController struct {
+	service service.PostService
+}
+
+func NewPostController(postService service.PostService) *PostController {
+	return &PostController{
+		service: postService,
+	}
+}
+
+func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (controller *PostController) GetPostById(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (controller *PostController) UpdatetPostById(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (controller *PostController) GetCommentsByPostId(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (controller *PostController) CreateCommentByPostId(w http.ResponseWriter, r *http.Request) {
+
 }
