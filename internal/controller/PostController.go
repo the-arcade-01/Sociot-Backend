@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"sociot/internal/entity"
 	service "sociot/internal/service"
 )
 
@@ -16,7 +17,8 @@ func NewPostController(postService service.PostService) *PostController {
 }
 
 func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Request) {
-
+	response := controller.service.GetPosts()
+	entity.ResponseWithJSON(w, http.StatusOK, response)
 }
 
 func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Request) {

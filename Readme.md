@@ -52,6 +52,7 @@ PUT /v1/posts/{id}
 DELETE /v1/posts/{id}
 GET /v1/posts/{postId}/comments?sortBy=votes
 POST /v1/posts/{postId}/comments
+GET /v1/comments/{commentId}
 PUT /v1/comments/{commentId}
 DELETE /v1/comments/{commentId}
 ```

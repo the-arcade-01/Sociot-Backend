@@ -44,6 +44,8 @@ func (server *Server) MountHandlers() {
 	versionOne.Route("/v1", func(router chi.Router) {
 		router.Mount("/greet", greetRoutes())
 		router.Mount("/users", userRoutes())
+		router.Mount("/posts", postRoutes())
+		router.Mount("/comments", commentRoutes())
 	})
 
 	server.Router.Mount("/api", versionOne)
@@ -62,6 +64,28 @@ func userRoutes() chi.Router {
 
 	r := chi.NewRouter()
 	r.Get("/", userController.GetUsers)
+
+	return r
+}
+
+func postRoutes() chi.Router {
+	postRepo := repo.NewPostRepository(nil)
+	postService := service.NewPostService(postRepo)
+	postController := controller.NewPostController(postService)
+
+	r := chi.NewRouter()
+	r.Get("/", postController.GetPosts)
+
+	return r
+}
+
+func commentRoutes() chi.Router {
+	commentRepo := repo.NewCommentRepository(nil)
+	commentService := service.NewCommentService(commentRepo)
+	commentController := controller.NewCommentController(commentService)
+
+	r := chi.NewRouter()
+	r.Get("/", commentController.GetCommentById)
 
 	return r
 }
