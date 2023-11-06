@@ -10,16 +10,14 @@ type UserController struct {
 	service service.UserService
 }
 
-func NewUserController(userService service.UserService) *UserController {
-	return &UserController{
+func NewUserController(userService service.UserService) UserController {
+	return UserController{
 		service: userService,
 	}
 }
 
 func (controller *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
-	response := entity.Response{
-		Data: []string{"user1", "user2"},
-	}
+	response := controller.service.GetUsers()
 	entity.ResponseWithJSON(w, http.StatusOK, response)
 }
 

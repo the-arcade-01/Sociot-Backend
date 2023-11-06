@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	controller "sociot/internal/controller"
+	repo "sociot/internal/repository"
+	service "sociot/internal/service"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -37,7 +39,31 @@ func (server *Server) MountMiddlerwares() {
 }
 
 func (server *Server) MountHandlers() {
-	server.Router.Get("/greet", controller.Greet)
+	versionOne := chi.NewRouter()
+
+	versionOne.Route("/v1", func(router chi.Router) {
+		router.Mount("/greet", greetRoutes())
+		router.Mount("/users", userRoutes())
+	})
+
+	server.Router.Mount("/api", versionOne)
+}
+
+func greetRoutes() chi.Router {
+	r := chi.NewRouter()
+	r.Get("/", controller.Greet)
+	return r
+}
+
+func userRoutes() chi.Router {
+	userRepo := repo.NewUserRepository(nil)
+	userService := service.NewUserService(userRepo)
+	userController := controller.NewUserController(userService)
+
+	r := chi.NewRouter()
+	r.Get("/", userController.GetUsers)
+
+	return r
 }
 
 func main() {
