@@ -8,7 +8,10 @@ Build in Go
 go get github.com/go-chi/chi/v5
 go get github.com/go-chi/chi/v5/middleware
 go get github.com/go-chi/cors
+go install github.com/swaggo/swag/cmd/swag
+go get go get github.com/swaggo/http-swagger/v2
 ```
+
 
 ## Project Structure
 
@@ -56,3 +59,8 @@ GET /v1/comments/{commentId}
 PUT /v1/comments/{commentId}
 DELETE /v1/comments/{commentId}
 ```
+
+## TODO
+
+1. swagger integration and swagger comments
+2. jwt auth on user

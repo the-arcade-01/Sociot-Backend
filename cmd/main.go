@@ -7,9 +7,12 @@ import (
 	repo "sociot/internal/repository"
 	service "sociot/internal/service"
 
+	_ "sociot/docs"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type Server struct {
@@ -47,7 +50,7 @@ func (server *Server) MountHandlers() {
 		router.Mount("/posts", postRoutes())
 		router.Mount("/comments", commentRoutes())
 	})
-
+	server.Router.Get("/swagger/*", httpSwagger.WrapHandler)
 	server.Router.Mount("/api", versionOne)
 }
 
@@ -90,6 +93,16 @@ func commentRoutes() chi.Router {
 	return r
 }
 
+// @title						Sociot Backend
+// @version					1.0
+// @description				REST API service written in Go.
+//
+// @contact.name				arcade
+// @contact.url				https://github.com/the-arcade-01/Sociot-Backend
+// @contact.email
+//
+// @host						localhost:5000
+// @BasePath					/v1
 func main() {
 	server := CreateServer()
 
