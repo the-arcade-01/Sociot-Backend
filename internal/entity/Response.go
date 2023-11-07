@@ -5,8 +5,14 @@ import (
 	"net/http"
 )
 
+type Meta struct {
+	Message    string `json:"message"`
+	StatusCode int    `json:"statusCode"`
+}
+
 type Response struct {
 	Data interface{} `json:"data"`
+	Meta Meta        `json:"meta"`
 }
 
 func ResponseWithJSON(w http.ResponseWriter, httpStatus int, payload interface{}) {

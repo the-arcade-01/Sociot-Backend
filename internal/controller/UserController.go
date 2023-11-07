@@ -4,6 +4,8 @@ import (
 	"net/http"
 	entity "sociot/internal/entity"
 	service "sociot/internal/service"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type UserController struct {
@@ -18,14 +20,13 @@ func NewUserController(userService service.UserService) UserController {
 
 func (controller *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	response := controller.service.GetUsers()
-	entity.ResponseWithJSON(w, http.StatusOK, response)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
 func (controller *UserController) GetUserById(w http.ResponseWriter, r *http.Request) {
-	response := entity.Response{
-		Data: []string{"user1", "user2"},
-	}
-	entity.ResponseWithJSON(w, http.StatusOK, response)
+	userId := chi.URLParam(r, "id")
+	response := controller.service.GetUserById(userId)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
 func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.Request) {

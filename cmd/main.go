@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"sociot/config"
 	controller "sociot/internal/controller"
 	repo "sociot/internal/repository"
 	service "sociot/internal/service"
@@ -12,16 +13,19 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type Server struct {
-	Router *chi.Mux
+	AppConfig *config.AppConfig
+	Router    *chi.Mux
 }
 
-func CreateServer() *Server {
+func CreateServer(appConfig *config.AppConfig) *Server {
 	server := &Server{}
 	server.Router = chi.NewRouter()
+	server.AppConfig = appConfig
 	return server
 }
 
@@ -46,7 +50,7 @@ func (server *Server) MountHandlers() {
 
 	versionOne.Route("/v1", func(router chi.Router) {
 		router.Mount("/greet", greetRoutes())
-		router.Mount("/users", userRoutes())
+		router.Mount("/users", userRoutes(server.AppConfig))
 		router.Mount("/posts", postRoutes())
 		router.Mount("/comments", commentRoutes())
 	})
@@ -60,15 +64,24 @@ func greetRoutes() chi.Router {
 	return r
 }
 
-func userRoutes() chi.Router {
+func userRoutes(appConfig *config.AppConfig) chi.Router {
 	userRepo := repo.NewUserRepository(nil)
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 
-	r := chi.NewRouter()
-	r.Get("/", userController.GetUsers)
+	claims := map[string]interface{}{"id": 1}
+	_, token, _ := appConfig.Token.Encode(claims)
+	log.Println(token)
 
-	return r
+	userRouter := chi.NewRouter()
+	userRouter.Get("/", userController.GetUsers)
+	userRouter.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(appConfig.Token))
+		r.Use(jwtauth.Authenticator)
+		r.Get("/{id}", userController.GetUserById)
+	})
+
+	return userRouter
 }
 
 func postRoutes() chi.Router {
@@ -104,7 +117,8 @@ func commentRoutes() chi.Router {
 // @host						localhost:5000
 // @BasePath					/v1
 func main() {
-	server := CreateServer()
+	appConfig := config.LoadConfig()
+	server := CreateServer(appConfig)
 
 	server.MountMiddlerwares()
 	server.MountHandlers()

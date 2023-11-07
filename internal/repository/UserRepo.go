@@ -25,3 +25,12 @@ func (repo *UserRepository) GetUsers() []*entity.User {
 	users = append(users, user)
 	return users
 }
+
+func (repo *UserRepository) GetUserById(userId int) *entity.User {
+	user := &entity.User{
+		UserId:   userId,
+		UserName: "ben10",
+		Email:    "ben10@gmail.com",
+	}
+	return user
+}
