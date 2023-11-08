@@ -34,3 +34,19 @@ func (repo *UserRepository) GetUserById(userId int) *entity.User {
 	}
 	return user
 }
+
+func (repo *UserRepository) UpdateUserById(userId int, userBody *entity.UpdateUserRequestBody) error {
+	return nil
+}
+
+func (repo *UserRepository) DeleteUserById(userId int) error {
+	return nil
+}
+
+func (repo *UserRepository) CreateUser(userBody *entity.CreateUserRequestBody) error {
+	return nil
+}
+
+func (repo *UserRepository) LoginUser(userBody *entity.LoginUserRequestBody) error {
+	return nil
+}
