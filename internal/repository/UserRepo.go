@@ -15,15 +15,23 @@ func NewUserRepository(DB *sql.DB) UserRepository {
 	}
 }
 
-func (repo *UserRepository) GetUsers() []*entity.User {
-	user := &entity.User{
-		UserId:   1,
-		UserName: "meowth",
-		Email:    "meowth@gmail.com",
+func (repo *UserRepository) GetUsers() ([]*entity.User, error) {
+	query := `SELECT * FROM users`
+	rows, err := repo.db.Query(query)
+
+	if err != nil {
+		return nil, err
 	}
+
 	var users []*entity.User
-	users = append(users, user)
-	return users
+	for rows.Next() {
+		user, err := entity.ScanIntoUser(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }
 
 func (repo *UserRepository) GetUserById(userId int) *entity.User {

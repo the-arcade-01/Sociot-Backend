@@ -12,8 +12,8 @@ go install github.com/swaggo/swag/cmd/swag
 go get github.com/swaggo/http-swagger/v2
 go get github.com/go-chi/jwtauth/v5
 go get github.com/joho/godotenv
+go get github.com/go-sql-driver/mysql
 ```
-
 
 ## Project Structure
 

@@ -18,7 +18,11 @@ func NewUserService(userRepo repo.UserRepository) UserService {
 }
 
 func (service *UserService) GetUsers() entity.Response {
-	users := service.repo.GetUsers()
+	users, err := service.repo.GetUsers()
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
 	response := entity.NewResponseObject(users, nil, http.StatusOK)
 	return response
 }

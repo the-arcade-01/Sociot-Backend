@@ -47,7 +47,7 @@ func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var userBody *entity.UpdateUserRequestBody
+	userBody := new(entity.UpdateUserRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
@@ -72,7 +72,7 @@ func (controller *UserController) DeleteUserById(w http.ResponseWriter, r *http.
 }
 
 func (controller *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var userBody *entity.CreateUserRequestBody
+	userBody := new(entity.CreateUserRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
@@ -83,7 +83,7 @@ func (controller *UserController) CreateUser(w http.ResponseWriter, r *http.Requ
 }
 
 func (controller *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
-	var userBody *entity.LoginUserRequestBody
+	userBody := new(entity.LoginUserRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)

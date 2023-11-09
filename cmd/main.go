@@ -65,7 +65,7 @@ func greetRoutes() chi.Router {
 }
 
 func userRoutes(appConfig *config.AppConfig) chi.Router {
-	userRepo := repo.NewUserRepository(nil)
+	userRepo := repo.NewUserRepository(appConfig.DB)
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 

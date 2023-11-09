@@ -1,6 +1,7 @@
 package config
 
 import (
+	"database/sql"
 	"log"
 	"os"
 	"sociot/internal/utils"
@@ -11,6 +12,7 @@ import (
 
 type AppConfig struct {
 	Token *jwtauth.JWTAuth
+	DB    *sql.DB
 }
 
 func LoadConfig() *AppConfig {
@@ -19,9 +21,18 @@ func LoadConfig() *AppConfig {
 		log.Fatalf("error occurred while loading env file, %v\n", err)
 	}
 	jwtSecret := os.Getenv(utils.JWT_SECRET)
+	dbUrl := os.Getenv(utils.DB_URL)
+	dbDriver := os.Getenv(utils.DB_DRIVER)
+
+	token := GenerateAuthToken(jwtSecret)
+	db, err := LoadDBConfig(dbUrl, dbDriver)
+	if err != nil {
+		log.Fatalf("error occurred while loading DB Config, %v\n", err)
+	}
 
 	appConfig := &AppConfig{
-		Token: GenerateAuthToken(jwtSecret),
+		Token: token,
+		DB:    db,
 	}
 
 	return appConfig

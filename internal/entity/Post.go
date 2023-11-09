@@ -1,10 +1,11 @@
 package entity
 
-type Post struct {
-	UserId    int    `json:"userId"`
-	PostId    int    `json:"postId"`
-	Content   string `json:"content"`
-	CreatedAt int64  `json:"createdAt"`
-	UpdatedAt int64  `json:"updatedAt"`
-}
+import "time"
 
+type Post struct {
+	UserId    int       `json:"userId"`
+	PostId    int       `json:"postId"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
