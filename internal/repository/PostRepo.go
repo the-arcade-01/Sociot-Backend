@@ -15,19 +15,25 @@ func NewPostRepository(DB *sql.DB) PostRepository {
 	}
 }
 
-func (repo *PostRepository) GetPosts() []*entity.Post {
-	post := &entity.Post{
-		UserId:  1,
-		PostId:  1,
-		Content: "this is my first post!!",
+func (repo *PostRepository) GetPosts() ([]*entity.Post, error) {
+	query := `SELECT * FROM posts`
+	rows, err := repo.db.Query(query)
+	if err != nil {
+		return nil, err
 	}
 	var posts []*entity.Post
-	posts = append(posts, post)
-	return posts
+	for rows.Next() {
+		post, err := entity.ScanIntoPost(rows)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
 }
 
 func (repo *PostRepository) GetPostById(postId int) (*entity.Post, error) {
-	query := `SELECT * FROM posts WHERE id = ?`
+	query := `SELECT * FROM posts WHERE postId = ?`
 	rows, err := repo.db.Query(query, postId)
 	if err != nil {
 		return nil, err
@@ -56,7 +62,7 @@ func (repo *PostRepository) CreatePost(post *entity.PostRequestBody) error {
 }
 
 func (repo *PostRepository) UpdatePostById(postId int, post *entity.UpdatePostRequestBody) error {
-	query := `UPDATE posts SET content = ? WHERE id = ?`
+	query := `UPDATE posts SET content = ? WHERE postId = ?`
 	_, err := repo.db.Exec(
 		query,
 		post.Content,
@@ -69,7 +75,7 @@ func (repo *PostRepository) UpdatePostById(postId int, post *entity.UpdatePostRe
 }
 
 func (repo *PostRepository) DeletePostById(postId int) error {
-	query := `DELETE FROM posts WHERE id = ?`
+	query := `DELETE FROM posts WHERE postId = ?`
 	_, err := repo.db.Exec(
 		query,
 		postId,

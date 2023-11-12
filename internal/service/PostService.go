@@ -18,7 +18,11 @@ func NewPostService(postRepo repo.PostRepository) PostService {
 }
 
 func (service *PostService) GetPosts() entity.Response {
-	posts := service.repo.GetPosts()
+	posts, err := service.repo.GetPosts()
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
 	response := entity.NewResponseObject(posts, nil, http.StatusOK)
 	return response
 }
