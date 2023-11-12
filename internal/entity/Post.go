@@ -9,3 +9,8 @@ type Post struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+type PostRequestBody struct {
+	UserId  int    `json:"userId"`
+	Content string `json:"content"`
+}

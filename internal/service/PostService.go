@@ -1,6 +1,7 @@
 package service
 
 import (
+	"net/http"
 	"sociot/internal/entity"
 	repo "sociot/internal/repository"
 )
@@ -19,6 +20,9 @@ func (service *PostService) GetPosts() entity.Response {
 	posts := service.repo.GetPosts()
 	response := entity.Response{
 		Data: posts,
+		Meta: entity.Meta{
+			StatusCode: http.StatusOK,
+		},
 	}
 	return response
 }
