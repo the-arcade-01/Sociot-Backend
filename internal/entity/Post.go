@@ -1,6 +1,9 @@
 package entity
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type Post struct {
 	UserId    int       `json:"userId"`
@@ -13,4 +16,23 @@ type Post struct {
 type PostRequestBody struct {
 	UserId  int    `json:"userId"`
 	Content string `json:"content"`
+}
+
+type UpdatePostRequestBody struct {
+	Content string `json:"content"`
+}
+
+func ScanIntoPost(rows *sql.Rows) (*Post, error) {
+	post := new(Post)
+	err := rows.Scan(
+		&post.UserId,
+		&post.PostId,
+		&post.Content,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
 }
