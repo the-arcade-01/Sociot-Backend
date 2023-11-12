@@ -20,11 +20,33 @@ func NewPostController(postService service.PostService) *PostController {
 	}
 }
 
+// GetPosts
+// @Summary Get all posts
+// @Description Fetches all posts
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Success 200 {object} entity.Response "List of all posts"
+// @Failure 400 {object} entity.Response "Bad request"
+// @Failure 500 {object} entity.Response "Internal server error"
+// @Router /posts [get]
 func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Request) {
 	response := controller.service.GetPosts()
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
+// CreatePost
+// @Summary		Creates a new post
+// @Description	Creates a new post
+// @Tags		Posts
+// @Accept		json
+// @Produce		json
+// @Param		postBody	body	entity.PostRequestBody	true	"Post request body"
+// @Success		200		{object}	entity.Response		"Post success response"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		401		{object}	entity.Response		"Unauthorized"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/posts [post]
 func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Request) {
 	postBody := new(entity.PostRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&postBody); err != nil {
@@ -37,6 +59,17 @@ func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Requ
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
+// GetPostById
+// @Summary		Get post details by Id
+// @Description Get post details by Id
+// @Tags		Posts
+// @Accept		json
+// @Produce		json
+// @Param		id		path		uint64		true	"Post Id"
+// @Success		200		{object}	entity.Response		"Post details by Id"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/posts/{id} [get]
 func (controller *PostController) GetPostById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	postId, err := strconv.Atoi(id)
@@ -49,6 +82,19 @@ func (controller *PostController) GetPostById(w http.ResponseWriter, r *http.Req
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
+// UpdatePostById
+// @Summary		Get post details by Id
+// @Description Get post details by Id
+// @Tags		Posts
+// @Accept		json
+// @Produce		json
+// @Param		id		path		uint64		true	"Post Id"
+// @Param		postBody	body	entity.UpdatePostRequestBody	true	"Update post request body"
+// @Success		200		{object}	entity.Response		"Post update success response"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		401		{object}	entity.Response		"Unauthorized"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/posts/{id} [put]
 func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	postId, err := strconv.Atoi(id)
@@ -69,6 +115,18 @@ func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
+// DeletePostById
+// @Summary		Deletes a post by Id
+// @Description Deletes a post by Id
+// @Tags		Posts
+// @Accept		json
+// @Produce		json
+// @Param		id		path		uint64		true	"Post Id"
+// @Success		200		{object}	entity.Response		"Deletes a Post by Id"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		401		{object}	entity.Response		"Unauthorized"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/posts/{id} [delete]
 func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	postId, err := strconv.Atoi(id)

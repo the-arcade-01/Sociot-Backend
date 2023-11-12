@@ -34,13 +34,20 @@ func (repo *UserRepository) GetUsers() ([]*entity.User, error) {
 	return users, nil
 }
 
-func (repo *UserRepository) GetUserById(userId int) *entity.User {
-	user := &entity.User{
-		UserId:   userId,
-		UserName: "ben10",
-		Email:    "ben10@gmail.com",
+func (repo *UserRepository) GetUserById(userId int) (*entity.User, error) {
+	query := `SELECT * FROM users WHERE userId = ?`
+	rows, err := repo.db.Query(query, userId)
+	if err != nil {
+		return nil, err
 	}
-	return user
+	var user *entity.User
+	for rows.Next() {
+		user, err = entity.ScanIntoUser(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return user, nil
 }
 
 func (repo *UserRepository) UpdateUserById(userId int, userBody *entity.UpdateUserRequestBody) error {

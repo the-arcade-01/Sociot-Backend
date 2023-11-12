@@ -1,5 +1,5 @@
 build:
-	@swag init -d ./cmd
+	@swag init -g ./cmd/main.go -o ./docs --parseInternal true
 	@go build -o ./bin/sociot ./cmd/main.go
 
 run:build

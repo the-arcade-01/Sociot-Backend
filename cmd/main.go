@@ -115,7 +115,7 @@ func commentRoutes() chi.Router {
 // @contact.email
 //
 // @host						localhost:5000
-// @BasePath					/v1
+// @BasePath					/api/v1
 func main() {
 	appConfig := config.LoadConfig()
 	server := CreateServer(appConfig)

@@ -28,7 +28,11 @@ func (service *UserService) GetUsers() entity.Response {
 }
 
 func (service *UserService) GetUserById(userId int) entity.Response {
-	user := service.repo.GetUserById(userId)
+	user, err := service.repo.GetUserById(userId)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
 	response := entity.NewResponseObject(user, nil, http.StatusOK)
 	return response
 }
@@ -59,6 +63,8 @@ func (service *UserService) CreateUser(userBody *entity.CreateUserRequestBody) e
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
 	}
+	// validation using validate library,
+	// validation for user fields, like email, password, userName should not be empty
 	response := entity.NewResponseObject(nil, "User created successfully", http.StatusCreated)
 	return response
 }
