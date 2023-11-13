@@ -5,15 +5,19 @@ import (
 	"net/http"
 	"sociot/internal/entity"
 	repo "sociot/internal/repository"
+
+	"github.com/go-chi/jwtauth/v5"
 )
 
 type UserService struct {
-	repo repo.UserRepository
+	token *jwtauth.JWTAuth
+	repo  repo.UserRepository
 }
 
-func NewUserService(userRepo repo.UserRepository) UserService {
+func NewUserService(userRepo repo.UserRepository, token *jwtauth.JWTAuth) UserService {
 	return UserService{
-		repo: userRepo,
+		repo:  userRepo,
+		token: token,
 	}
 }
 
@@ -37,8 +41,12 @@ func (service *UserService) GetUserById(userId int) entity.Response {
 	return response
 }
 
-func (service *UserService) UpdateUserById(userId int, userBody *entity.UpdateUserRequestBody) entity.Response {
-	err := service.repo.UpdateUserById(userId, userBody)
+func (service *UserService) UpdateUserById(userId int, userBody *entity.UpdateUserDetailsRequestBody) entity.Response {
+	user := &entity.User{
+		UserName: userBody.UserName,
+		Email:    userBody.Email,
+	}
+	err := service.repo.UpdateUserById(userId, user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
@@ -58,7 +66,13 @@ func (service *UserService) DeleteUserById(userId int) entity.Response {
 }
 
 func (service *UserService) CreateUser(userBody *entity.CreateUserRequestBody) entity.Response {
-	err := service.repo.CreateUser(userBody)
+	user := &entity.User{
+		UserName: userBody.UserName,
+		Email:    userBody.Email,
+		Password: userBody.Password,
+	}
+
+	err := service.repo.CreateUser(user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
@@ -70,12 +84,25 @@ func (service *UserService) CreateUser(userBody *entity.CreateUserRequestBody) e
 }
 
 func (service *UserService) LoginUser(userBody *entity.LoginUserRequestBody) entity.Response {
-	err := service.repo.LoginUser(userBody)
-	// here, actual code will, check user password in repo, and then generate jwt token and return it
+	user := &entity.User{
+		Email:    userBody.Email,
+		Password: userBody.Password,
+	}
+
+	userDetails, err := service.repo.LoginUser(user)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		return response
+	}
+
+	claims := map[string]interface{}{"userId": userDetails.UserId, "email": userDetails.Email, "userName": userDetails.UserName}
+	_, tokenString, err := service.token.Encode(claims)
+
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
 	}
-	response := entity.NewResponseObject(nil, "User login successfully", http.StatusOK)
+
+	response := entity.NewResponseObject(tokenString, "User login successfully", http.StatusOK)
 	return response
 }

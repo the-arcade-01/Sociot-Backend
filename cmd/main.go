@@ -66,19 +66,19 @@ func greetRoutes() chi.Router {
 
 func userRoutes(appConfig *config.AppConfig) chi.Router {
 	userRepo := repo.NewUserRepository(appConfig.DB)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, appConfig.Token)
 	userController := controller.NewUserController(userService)
-
-	claims := map[string]interface{}{"id": 1}
-	_, token, _ := appConfig.Token.Encode(claims)
-	log.Println(token)
 
 	userRouter := chi.NewRouter()
 	userRouter.Get("/", userController.GetUsers)
+	userRouter.Post("/", userController.CreateUser)
+	userRouter.Post("/login", userController.LoginUser)
 	userRouter.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(appConfig.Token))
 		r.Use(jwtauth.Authenticator)
 		r.Get("/{id}", userController.GetUserById)
+		r.Put("/{id}", userController.UpdateUserById)
+		r.Delete("/{id}", userController.DeleteUserById)
 	})
 
 	return userRouter

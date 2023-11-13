@@ -13,6 +13,7 @@ go get github.com/swaggo/http-swagger/v2
 go get github.com/go-chi/jwtauth/v5
 go get github.com/joho/godotenv
 go get github.com/go-sql-driver/mysql
+go get golang.org/x/crypto/bcrypt
 ```
 
 ## Project Structure

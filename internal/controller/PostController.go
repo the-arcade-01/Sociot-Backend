@@ -21,15 +21,15 @@ func NewPostController(postService service.PostService) *PostController {
 }
 
 // GetPosts
-// @Summary Get all posts
+// @Summary 	Get all posts
 // @Description Fetches all posts
-// @Tags Posts
-// @Accept json
-// @Produce json
-// @Success 200 {object} entity.Response "List of all posts"
-// @Failure 400 {object} entity.Response "Bad request"
-// @Failure 500 {object} entity.Response "Internal server error"
-// @Router /posts [get]
+// @Tags 		Posts
+// @Accept 		json
+// @Produce 	json
+// @Success 	200 	{object} 	entity.Response 	"List of all posts"
+// @Failure 	400		{object}	entity.Response 	"Bad request"
+// @Failure 	500 	{object} 	entity.Response 	"Internal server error"
+// @Router 		/posts [get]
 func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Request) {
 	response := controller.service.GetPosts()
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)

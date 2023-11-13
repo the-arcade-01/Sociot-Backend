@@ -5,6 +5,7 @@ import (
 	"net/http"
 	entity "sociot/internal/entity"
 	service "sociot/internal/service"
+	"sociot/internal/utils"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -42,6 +43,9 @@ func (controller *UserController) GetUsers(w http.ResponseWriter, r *http.Reques
 // @Accept		json
 // @Produce		json
 // @Param		id		path		uint64		true	"User Id"
+//
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
+//
 // @Success		200		{object}	entity.Response		"User details by Id"
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		401		{object}	entity.Response		"Unauthorized"
@@ -52,6 +56,13 @@ func (controller *UserController) GetUserById(w http.ResponseWriter, r *http.Req
 	userId, err := strconv.Atoi(id)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	err = utils.ValidateAuthToken(userId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 		return
 	}
@@ -67,8 +78,11 @@ func (controller *UserController) GetUserById(w http.ResponseWriter, r *http.Req
 // @Accept		json
 // @Produce		json
 // @Param		id		path		uint64		true	"User Id"
-// @Param		userBody	body	entity.UpdateUserRequestBody	true	"Update user request body"
-// @Success		200		{object}	entity.Response		"User update sucess response"
+// @Param		userBody	body	entity.UpdateUserDetailsRequestBody	true	"Update user request body"
+//
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
+//
+// @Success		202		{object}	entity.Response		"User update sucess response"
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
@@ -82,7 +96,14 @@ func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	userBody := new(entity.UpdateUserRequestBody)
+	err = utils.ValidateAuthToken(userId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	userBody := new(entity.UpdateUserDetailsRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
@@ -101,6 +122,9 @@ func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.
 // @Accept		json
 // @Produce		json
 // @Param		id		path		uint64		true	"User Id"
+//
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
+//
 // @Success		200		{object}	entity.Response		"Deletes a user by Id"
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		401		{object}	entity.Response		"Unauthorized"
@@ -114,8 +138,16 @@ func (controller *UserController) DeleteUserById(w http.ResponseWriter, r *http.
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 		return
 	}
+
+	err = utils.ValidateAuthToken(userId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
 	response := controller.service.DeleteUserById(userId)
-	entity.ResponseWithJSON(w, http.StatusOK, response)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
 // CreateUser
@@ -125,9 +157,8 @@ func (controller *UserController) DeleteUserById(w http.ResponseWriter, r *http.
 // @Accept		json
 // @Produce		json
 // @Param		userBody	body	entity.CreateUserRequestBody	true	"User request body"
-// @Success		200		{object}	entity.Response		"User success response"
+// @Success		201		{object}	entity.Response		"User success response"
 // @Failure		400		{object}	entity.Response		"Bad request"
-// @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users [post]
 func (controller *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -138,9 +169,20 @@ func (controller *UserController) CreateUser(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	response := controller.service.CreateUser(userBody)
-	entity.ResponseWithJSON(w, http.StatusOK, response)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
+// LoginUser
+// @Summary		Logins a new user
+// @Description	Logins a new user
+// @Tags		Users
+// @Accept		json
+// @Produce		json
+// @Param		userBody	body	entity.LoginUserRequestBody	true	"Login User request body"
+// @Success		200		{object}	entity.Response		"Login User success response with Token"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/users/login [post]
 func (controller *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
 	userBody := new(entity.LoginUserRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
@@ -149,7 +191,7 @@ func (controller *UserController) LoginUser(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	response := controller.service.LoginUser(userBody)
-	entity.ResponseWithJSON(w, http.StatusOK, response)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
 func (controller *UserController) GetUserPosts(w http.ResponseWriter, r *http.Request) {

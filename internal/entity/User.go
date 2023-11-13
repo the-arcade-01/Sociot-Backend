@@ -15,10 +15,17 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-type UpdateUserRequestBody struct {
+type UserDetails struct {
+	UserId    int       `json:"userId"`
+	UserName  string    `json:"userName"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type UpdateUserDetailsRequestBody struct {
 	UserName string `json:"userName"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
 }
 
 type CreateUserRequestBody struct {
