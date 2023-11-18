@@ -51,11 +51,11 @@ func ValidateRequestBody(body any) (entity.Response, error) {
 func getErrMsg(err validator.FieldError) error {
 	switch err.Tag() {
 	case "required":
-		return fmt.Errorf("%v: is required", err.Field())
+		return fmt.Errorf("%v: is required ", err.Field())
 	case "min":
-		return fmt.Errorf("min length of %v is 4", err.Field())
+		return fmt.Errorf("min length of %v is 4 ", err.Field())
 	case "email":
-		return fmt.Errorf("please provide a valid email")
+		return fmt.Errorf("please provide a valid email ")
 	}
-	return fmt.Errorf("please check the required params")
+	return fmt.Errorf("please check the required params ")
 }
