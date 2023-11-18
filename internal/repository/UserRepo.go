@@ -137,6 +137,10 @@ func (repo *UserRepository) LoginUser(user *entity.User) (*entity.UserDetails, e
 		}
 	}
 
+	if dbUser == nil {
+		return nil, errors.New("user doesn't exists, please create an account")
+	}
+
 	if err := utils.CheckPassword(dbUser.Password, user.Password); err != nil {
 		return nil, errors.New("incorrect password, please try again")
 	}
