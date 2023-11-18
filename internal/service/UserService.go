@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sociot/internal/entity"
 	repo "sociot/internal/repository"
+	"time"
 
 	"github.com/go-chi/jwtauth/v5"
 )
@@ -103,7 +104,8 @@ func (service *UserService) LoginUser(userBody *entity.LoginUserRequestBody) ent
 		return response
 	}
 
-	claims := map[string]interface{}{"userId": userDetails.UserId, "email": userDetails.Email, "userName": userDetails.UserName}
+	expirationTime := time.Now().Add(72 * time.Hour)
+	claims := map[string]interface{}{"userId": userDetails.UserId, "email": userDetails.Email, "userName": userDetails.UserName, "exp": expirationTime}
 	_, tokenString, err := service.token.Encode(claims)
 
 	if err != nil {
