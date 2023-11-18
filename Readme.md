@@ -14,6 +14,7 @@ go get github.com/go-chi/jwtauth/v5
 go get github.com/joho/godotenv
 go get github.com/go-sql-driver/mysql
 go get golang.org/x/crypto/bcrypt
+go get -u github.com/go-playground/validator/v10
 ```
 
 ## Project Structure

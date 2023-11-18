@@ -24,19 +24,19 @@ type UserDetails struct {
 }
 
 type UpdateUserDetailsRequestBody struct {
-	UserName string `json:"userName"`
-	Email    string `json:"email"`
+	UserName string `json:"userName" validate:"required,min=4"`
+	Password string `json:"password" validate:"required,min=4"`
 }
 
 type CreateUserRequestBody struct {
-	UserName string `json:"userName"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	UserName string `json:"userName" validate:"required,min=4"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=4"`
 }
 
 type LoginUserRequestBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 func ScanIntoUser(rows *sql.Rows) (*User, error) {
