@@ -44,9 +44,14 @@ func (service *UserService) GetUserById(userId int) entity.Response {
 func (service *UserService) UpdateUserById(userId int, userBody *entity.UpdateUserDetailsRequestBody) entity.Response {
 	user := &entity.User{
 		UserName: userBody.UserName,
-		Email:    userBody.Email,
+		Password: userBody.Password,
 	}
-	err := service.repo.UpdateUserById(userId, user)
+	err := service.repo.CheckExistingUser(user)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		return response
+	}
+	err = service.repo.UpdateUserById(userId, user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
@@ -71,14 +76,17 @@ func (service *UserService) CreateUser(userBody *entity.CreateUserRequestBody) e
 		Email:    userBody.Email,
 		Password: userBody.Password,
 	}
-
-	err := service.repo.CreateUser(user)
+	err := service.repo.CheckExistingUser(user)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		return response
+	}
+	err = service.repo.CreateUser(user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
 	}
-	// validation using validate library,
-	// validation for user fields, like email, password, userName should not be empty
+
 	response := entity.NewResponseObject(nil, "User created successfully", http.StatusCreated)
 	return response
 }

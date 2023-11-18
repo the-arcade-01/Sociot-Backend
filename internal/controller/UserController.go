@@ -111,7 +111,13 @@ func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.
 	}
 	defer r.Body.Close()
 
-	response := controller.service.UpdateUserById(userId, userBody)
+	response, err := utils.ValidateRequestBody(userBody)
+	if err != nil {
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	response = controller.service.UpdateUserById(userId, userBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
@@ -168,7 +174,14 @@ func (controller *UserController) CreateUser(w http.ResponseWriter, r *http.Requ
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 		return
 	}
-	response := controller.service.CreateUser(userBody)
+
+	response, err := utils.ValidateRequestBody(userBody)
+	if err != nil {
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	response = controller.service.CreateUser(userBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
@@ -190,7 +203,14 @@ func (controller *UserController) LoginUser(w http.ResponseWriter, r *http.Reque
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 		return
 	}
-	response := controller.service.LoginUser(userBody)
+
+	response, err := utils.ValidateRequestBody(userBody)
+	if err != nil {
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	response = controller.service.LoginUser(userBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sociot/internal/entity"
 	"sociot/internal/utils"
+	"strconv"
 )
 
 type UserRepository struct {
@@ -73,11 +74,16 @@ func (repo *UserRepository) GetUserById(userId int) (*entity.UserDetails, error)
 }
 
 func (repo *UserRepository) UpdateUserById(userId int, user *entity.User) error {
-	query := `UPDATE users SET email = ?, userName = ? WHERE userId = ?`
-	_, err := repo.db.Exec(
+	hashPassword, err := utils.GetHashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+
+	query := `UPDATE users SET userName = ?, password = ? WHERE userId = ?`
+	_, err = repo.db.Exec(
 		query,
-		user.Email,
 		user.UserName,
+		hashPassword,
 		userId,
 	)
 	if err != nil {
@@ -144,4 +150,31 @@ func (repo *UserRepository) LoginUser(user *entity.User) (*entity.UserDetails, e
 	}
 
 	return userDetails, nil
+}
+
+func (repo *UserRepository) CheckExistingUser(user *entity.User) error {
+	query := `SELECT COUNT(userId) FROM users WHERE userName = ?`
+	var records string
+	err := repo.db.QueryRow(query, user.UserName).Scan(&records)
+	if err != nil {
+		return errors.New("please use different username")
+	}
+	recordsNum, err := strconv.Atoi(records)
+
+	if recordsNum != 0 || err != nil {
+		return errors.New("username already taken, please use different username")
+	}
+
+	query = `SELECT COUNT(email) FROM users WHERE email = ?`
+	err = repo.db.QueryRow(query, user.Email).Scan(&records)
+	if err != nil {
+		return errors.New("please use different email")
+	}
+	recordsNum, err = strconv.Atoi(records)
+
+	if recordsNum != 0 || err != nil {
+		return errors.New("email already exists, please use different email")
+	}
+
+	return nil
 }
