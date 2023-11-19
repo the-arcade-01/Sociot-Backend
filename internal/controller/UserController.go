@@ -78,7 +78,7 @@ func (controller *UserController) GetUserById(w http.ResponseWriter, r *http.Req
 // @Accept		json
 // @Produce		json
 // @Param		id		path		uint64		true	"User Id"
-// @Param		userBody	body	entity.UpdateUserDetailsRequestBody	true	"Update user request body"
+// @Param		userBody	body	entity.UpdateUserNameReqBody	true	"Update user request body"
 //
 // @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
 //
@@ -103,7 +103,7 @@ func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	userBody := new(entity.UpdateUserDetailsRequestBody)
+	userBody := new(entity.UpdateUserNameReqBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
@@ -118,6 +118,56 @@ func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.
 	}
 
 	response = controller.service.UpdateUserById(userId, userBody)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+}
+
+// UpdateUserPasswordById
+// @Summary		Update user password by Id
+// @Description Update user password by Id
+// @Tags		Users
+// @Accept		json
+// @Produce		json
+// @Param		id		path		uint64		true	"User Id"
+// @Param		userBody	body	entity.UpdateUserPasswordReqBody	true	"Update user request body"
+//
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
+//
+// @Success		202		{object}	entity.Response		"User update success response"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		401		{object}	entity.Response		"Unauthorized"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/users/password/{id} [put]
+func (controller *UserController) UpdateUserPasswordById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	err = utils.ValidateAuthToken(userId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	userBody := new(entity.UpdateUserPasswordReqBody)
+	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+	defer r.Body.Close()
+
+	response, err := utils.ValidateRequestBody(userBody)
+	if err != nil {
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	response = controller.service.UpdateUserPasswordById(userId, userBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 

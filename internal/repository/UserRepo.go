@@ -73,23 +73,30 @@ func (repo *UserRepository) GetUserById(userId int) (*entity.UserDetails, error)
 	return userDetails, nil
 }
 
-func (repo *UserRepository) UpdateUserById(userId int, user *entity.User) error {
+func (repo *UserRepository) UpdateUserNameById(userId int, user *entity.User) error {
+	query := `UPDATE users SET userName = ? WHERE userId = ?`
+	_, err := repo.db.Exec(
+		query,
+		user.UserName,
+		userId,
+	)
+	return err
+}
+
+func (repo *UserRepository) UpdateUserPasswordById(userId int, user *entity.User) error {
 	hashPassword, err := utils.GetHashPassword(user.Password)
 	if err != nil {
 		return err
 	}
 
-	query := `UPDATE users SET userName = ?, password = ? WHERE userId = ?`
+	query := `UPDATE users SET password = ? WHERE userId = ?`
 	_, err = repo.db.Exec(
 		query,
-		user.UserName,
 		hashPassword,
 		userId,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return err
 }
 
 func (repo *UserRepository) DeleteUserById(userId int) error {

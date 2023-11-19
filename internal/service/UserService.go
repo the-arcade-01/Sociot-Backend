@@ -42,22 +42,34 @@ func (service *UserService) GetUserById(userId int) entity.Response {
 	return response
 }
 
-func (service *UserService) UpdateUserById(userId int, userBody *entity.UpdateUserDetailsRequestBody) entity.Response {
+func (service *UserService) UpdateUserById(userId int, userBody *entity.UpdateUserNameReqBody) entity.Response {
 	user := &entity.User{
 		UserName: userBody.UserName,
-		Password: userBody.Password,
 	}
 	err := service.repo.CheckExistingUser(user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
 		return response
 	}
-	err = service.repo.UpdateUserById(userId, user)
+	err = service.repo.UpdateUserNameById(userId, user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
 	}
-	response := entity.NewResponseObject(nil, fmt.Sprintf("Details updated for User: %v", userId), http.StatusAccepted)
+	response := entity.NewResponseObject(nil, fmt.Sprintf("Username updated for User: %v", userId), http.StatusAccepted)
+	return response
+}
+
+func (service *UserService) UpdateUserPasswordById(userId int, userBody *entity.UpdateUserPasswordReqBody) entity.Response {
+	user := &entity.User{
+		Password: userBody.Password,
+	}
+	err := service.repo.UpdateUserPasswordById(userId, user)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
+	response := entity.NewResponseObject(nil, fmt.Sprintf("Password updated for User: %v", userId), http.StatusAccepted)
 	return response
 }
 
@@ -113,6 +125,11 @@ func (service *UserService) LoginUser(userBody *entity.LoginUserRequestBody) ent
 		return response
 	}
 
-	response := entity.NewResponseObject(tokenString, "User login successfully", http.StatusOK)
+	userLoginDetails := entity.UserLoginDetails{
+		Token:  tokenString,
+		UserId: userDetails.UserId,
+	}
+
+	response := entity.NewResponseObject(userLoginDetails, "User login successfully", http.StatusOK)
 	return response
 }

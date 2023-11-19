@@ -78,6 +78,7 @@ func userRoutes(appConfig *config.AppConfig) chi.Router {
 		r.Use(jwtauth.Authenticator)
 		r.Get("/{id}", userController.GetUserById)
 		r.Put("/{id}", userController.UpdateUserById)
+		r.Put("/password/{id}", userController.UpdateUserPasswordById)
 		r.Delete("/{id}", userController.DeleteUserById)
 	})
 
