@@ -19,7 +19,12 @@ type PostRequestBody struct {
 }
 
 type UpdatePostRequestBody struct {
+	UserId  int    `json:"userId"`
 	Content string `json:"content"`
+}
+
+type DeletePostRequestBody struct {
+	UserId int `json:"userId"`
 }
 
 func ScanIntoPost(rows *sql.Rows) (*Post, error) {

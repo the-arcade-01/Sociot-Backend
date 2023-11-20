@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sociot/internal/entity"
 	service "sociot/internal/service"
+	"sociot/internal/utils"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -41,6 +42,7 @@ func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Reques
 // @Tags		Posts
 // @Accept		json
 // @Produce		json
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
 // @Param		postBody	body	entity.PostRequestBody	true	"Post request body"
 // @Success		200		{object}	entity.Response		"Post success response"
 // @Failure		400		{object}	entity.Response		"Bad request"
@@ -55,6 +57,14 @@ func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	defer r.Body.Close()
+
+	err := utils.ValidateAuthToken(postBody.UserId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
 	response := controller.service.CreatePost(postBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
@@ -88,6 +98,7 @@ func (controller *PostController) GetPostById(w http.ResponseWriter, r *http.Req
 // @Tags		Posts
 // @Accept		json
 // @Produce		json
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
 // @Param		id		path		uint64		true	"Post Id"
 // @Param		postBody	body	entity.UpdatePostRequestBody	true	"Update post request body"
 // @Success		200		{object}	entity.Response		"Post update success response"
@@ -111,6 +122,13 @@ func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.
 	}
 	defer r.Body.Close()
 
+	err = utils.ValidateAuthToken(postBody.UserId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
 	response := controller.service.UpdatePostById(postId, postBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
@@ -121,7 +139,9 @@ func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.
 // @Tags		Posts
 // @Accept		json
 // @Produce		json
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
 // @Param		id		path		uint64		true	"Post Id"
+// @Param		postBody	body	entity.DeletePostRequestBody	true	"Delete post request body"
 // @Success		200		{object}	entity.Response		"Deletes a Post by Id"
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		401		{object}	entity.Response		"Unauthorized"
@@ -135,6 +155,22 @@ func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 		return
 	}
+
+	postBody := new(entity.DeletePostRequestBody)
+	if err := json.NewDecoder(r.Body).Decode(&postBody); err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+	defer r.Body.Close()
+
+	err = utils.ValidateAuthToken(postBody.UserId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
 	response := controller.service.DeletePostById(postId)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }

@@ -51,7 +51,7 @@ func (server *Server) MountHandlers() {
 	versionOne.Route("/v1", func(router chi.Router) {
 		router.Mount("/greet", greetRoutes())
 		router.Mount("/users", userRoutes(server.AppConfig))
-		router.Mount("/posts", postRoutes())
+		router.Mount("/posts", postRoutes(server.AppConfig))
 		router.Mount("/comments", commentRoutes())
 	})
 	server.Router.Get("/swagger/*", httpSwagger.WrapHandler)
@@ -85,9 +85,9 @@ func userRoutes(appConfig *config.AppConfig) chi.Router {
 	return userRouter
 }
 
-func postRoutes() chi.Router {
-	postRepo := repo.NewPostRepository(nil)
-	postService := service.NewPostService(postRepo)
+func postRoutes(appConfig *config.AppConfig) chi.Router {
+	postRepo := repo.NewPostRepository(appConfig.DB)
+	postService := service.NewPostService(postRepo, appConfig.Token)
 	postController := controller.NewPostController(postService)
 
 	r := chi.NewRouter()

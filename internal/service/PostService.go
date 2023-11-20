@@ -5,15 +5,19 @@ import (
 	"net/http"
 	"sociot/internal/entity"
 	repo "sociot/internal/repository"
+
+	"github.com/go-chi/jwtauth/v5"
 )
 
 type PostService struct {
-	repo repo.PostRepository
+	repo  repo.PostRepository
+	token *jwtauth.JWTAuth
 }
 
-func NewPostService(postRepo repo.PostRepository) PostService {
+func NewPostService(postRepo repo.PostRepository, token *jwtauth.JWTAuth) PostService {
 	return PostService{
-		repo: postRepo,
+		repo:  postRepo,
+		token: token,
 	}
 }
 

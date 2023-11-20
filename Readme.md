@@ -22,23 +22,47 @@ go get -u github.com/go-playground/validator/v10
 ```shell
 .
 ├── bin
-│ └── sociot
+│   └── sociot
 ├── cmd
-│ └── main.go
+│   └── main.go
 ├── config
-│ └── config.go
+│   ├── config.go
+│   ├── DBConfig.go
+│   └── JWTConfig.go
 ├── docs
+│   ├── docs.go
+│   ├── swagger.json
+│   └── swagger.yaml
 ├── go.mod
+├── go.sum
 ├── internal
-│ ├── controller
-│ ├── entity
-│ ├── repository
-│ └── service
+│   ├── controller
+│   │   ├── CommentController.go
+│   │   ├── GreetController.go
+│   │   ├── PostController.go
+│   │   └── UserController.go
+│   ├── entity
+│   │   ├── Comment.go
+│   │   ├── Post.go
+│   │   ├── Response.go
+│   │   └── User.go
+│   ├── repository
+│   │   ├── CommentRepo.go
+│   │   ├── PostRepo.go
+│   │   └── UserRepo.go
+│   ├── service
+│   │   ├── CommentService.go
+│   │   ├── PostService.go
+│   │   └── UserService.go
+│   └── utils
+│       ├── CommonUtils.go
+│       └── Constants.go
 ├── Makefile
+├── notes
 ├── Readme.md
 └── scripts
-├── db.sql
-└── setup.sh
+    ├── db.sql
+    └── setup.sh
 ```
 
 ## API Design
