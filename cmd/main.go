@@ -90,10 +90,18 @@ func postRoutes(appConfig *config.AppConfig) chi.Router {
 	postService := service.NewPostService(postRepo, appConfig.Token)
 	postController := controller.NewPostController(postService)
 
-	r := chi.NewRouter()
-	r.Get("/", postController.GetPosts)
+	postRouter := chi.NewRouter()
+	postRouter.Get("/", postController.GetPosts)
+	postRouter.Get("/{id}", postController.GetPostById)
+	postRouter.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(appConfig.Token))
+		r.Use(jwtauth.Authenticator)
+		r.Post("/", postController.CreatePost)
+		r.Put("/{id}", postController.UpdatePostById)
+		r.Delete("/{id}", postController.DeletePostById)
+	})
 
-	return r
+	return postRouter
 }
 
 func commentRoutes() chi.Router {

@@ -58,14 +58,20 @@ func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Requ
 	}
 	defer r.Body.Close()
 
-	err := utils.ValidateAuthToken(postBody.UserId, r.Context())
+	response, err := utils.ValidateRequestBody(postBody)
+	if err != nil {
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	err = utils.ValidateAuthToken(postBody.UserId, r.Context())
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
 		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 		return
 	}
 
-	response := controller.service.CreatePost(postBody)
+	response = controller.service.CreatePost(postBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
@@ -122,6 +128,12 @@ func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.
 	}
 	defer r.Body.Close()
 
+	response, err := utils.ValidateRequestBody(postBody)
+	if err != nil {
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
 	err = utils.ValidateAuthToken(postBody.UserId, r.Context())
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
@@ -129,7 +141,7 @@ func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	response := controller.service.UpdatePostById(postId, postBody)
+	response = controller.service.UpdatePostById(postId, postBody)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
@@ -164,6 +176,12 @@ func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.
 	}
 	defer r.Body.Close()
 
+	response, err := utils.ValidateRequestBody(postBody)
+	if err != nil {
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
 	err = utils.ValidateAuthToken(postBody.UserId, r.Context())
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
@@ -171,7 +189,7 @@ func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	response := controller.service.DeletePostById(postId)
+	response = controller.service.DeletePostById(postId)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
