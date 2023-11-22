@@ -9,12 +9,14 @@ import (
 )
 
 type UserRepository struct {
-	db *sql.DB
+	db       *sql.DB
+	postRepo PostRepository
 }
 
-func NewUserRepository(DB *sql.DB) UserRepository {
+func NewUserRepository(DB *sql.DB, repo PostRepository) UserRepository {
 	return UserRepository{
-		db: DB,
+		db:       DB,
+		postRepo: repo,
 	}
 }
 
@@ -100,8 +102,12 @@ func (repo *UserRepository) UpdateUserPasswordById(userId int, user *entity.User
 }
 
 func (repo *UserRepository) DeleteUserById(userId int) error {
+	err := repo.postRepo.DeletePostByUserId(userId)
+	if err != nil {
+		return err
+	}
 	query := `DELETE FROM users WHERE userId = ?`
-	_, err := repo.db.Exec(
+	_, err = repo.db.Exec(
 		query, userId,
 	)
 	if err != nil {

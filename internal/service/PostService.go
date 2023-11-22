@@ -42,7 +42,12 @@ func (service *PostService) GetPostById(postId int) entity.Response {
 }
 
 func (service *PostService) CreatePost(postBody *entity.PostRequestBody) entity.Response {
-	err := service.repo.CreatePost(postBody)
+	post := &entity.Post{
+		UserId:  postBody.UserId,
+		Title:   postBody.Title,
+		Content: postBody.Content,
+	}
+	err := service.repo.CreatePost(post)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
@@ -52,7 +57,12 @@ func (service *PostService) CreatePost(postBody *entity.PostRequestBody) entity.
 }
 
 func (service *PostService) UpdatePostById(postId int, postBody *entity.UpdatePostRequestBody) entity.Response {
-	err := service.repo.UpdatePostById(postId, postBody)
+	post := &entity.Post{
+		PostId:  postId,
+		Title:   postBody.Title,
+		Content: postBody.Content,
+	}
+	err := service.repo.UpdatePostById(post)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
@@ -61,12 +71,43 @@ func (service *PostService) UpdatePostById(postId int, postBody *entity.UpdatePo
 	return response
 }
 
-func (service *PostService) DeletePostById(postId int) entity.Response {
-	err := service.repo.DeletePostById(postId)
+func (service *PostService) DeletePostById(postId int, userId int) entity.Response {
+	post, err := service.repo.GetPostById(postId)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		return response
+	}
+	if post == nil || post.UserId != userId {
+		response := entity.NewResponseObject(nil, "invalid user, user is not authorized to delete post", http.StatusUnauthorized)
+		return response
+	}
+	err = service.repo.DeletePostById(postId)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
 	}
 	response := entity.NewResponseObject(nil, fmt.Sprintf("Post deleted successfully, PostId: %v", postId), http.StatusOK)
+	return response
+}
+
+func (service *PostService) UpdatePostViewsById(postId int) entity.Response {
+	err := service.repo.UpdatePostViewsById(postId)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
+	response := entity.NewResponseObject(nil, nil, http.StatusOK)
+	return response
+}
+
+func (service *PostService) GetUserPosts(userId int) entity.Response {
+	posts, err := service.repo.GetUserPosts(userId)
+
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
+
+	response := entity.NewResponseObject(posts, nil, http.StatusOK)
 	return response
 }

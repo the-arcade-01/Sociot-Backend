@@ -49,70 +49,49 @@ func (server *Server) MountHandlers() {
 	versionOne := chi.NewRouter()
 
 	versionOne.Route("/v1", func(router chi.Router) {
-		router.Mount("/greet", greetRoutes())
-		router.Mount("/users", userRoutes(server.AppConfig))
-		router.Mount("/posts", postRoutes(server.AppConfig))
-		router.Mount("/comments", commentRoutes())
+		greetRouter := chi.NewRouter()
+		greetRouter.Get("/greet", controller.Greet)
+
+		postRepo := repo.NewPostRepository(server.AppConfig.DB)
+		postService := service.NewPostService(postRepo, server.AppConfig.Token)
+		postController := controller.NewPostController(postService)
+
+		postRouter := chi.NewRouter()
+		postRouter.Get("/", postController.GetPosts)
+		postRouter.Get("/{id}", postController.GetPostById)
+		postRouter.Put("/views/{id}", postController.UpdatePostViewsById)
+		postRouter.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(server.AppConfig.Token))
+			r.Use(jwtauth.Authenticator)
+			r.Get("/users/{id}", postController.GetUserPosts)
+			r.Post("/", postController.CreatePost)
+			r.Put("/{id}", postController.UpdatePostById)
+			r.Delete("/{id}", postController.DeletePostById)
+		})
+
+		userRepo := repo.NewUserRepository(server.AppConfig.DB, postRepo)
+		userService := service.NewUserService(userRepo, server.AppConfig.Token)
+		userController := controller.NewUserController(userService)
+
+		userRouter := chi.NewRouter()
+		userRouter.Get("/", userController.GetUsers)
+		userRouter.Post("/", userController.CreateUser)
+		userRouter.Post("/login", userController.LoginUser)
+		userRouter.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(server.AppConfig.Token))
+			r.Use(jwtauth.Authenticator)
+			r.Get("/{id}", userController.GetUserById)
+			r.Put("/{id}", userController.UpdateUserById)
+			r.Put("/password/{id}", userController.UpdateUserPasswordById)
+			r.Delete("/{id}", userController.DeleteUserById)
+		})
+
+		router.Mount("/greet", greetRouter)
+		router.Mount("/users", userRouter)
+		router.Mount("/posts", postRouter)
 	})
 	server.Router.Get("/swagger/*", httpSwagger.WrapHandler)
 	server.Router.Mount("/api", versionOne)
-}
-
-func greetRoutes() chi.Router {
-	r := chi.NewRouter()
-	r.Get("/", controller.Greet)
-	return r
-}
-
-func userRoutes(appConfig *config.AppConfig) chi.Router {
-	userRepo := repo.NewUserRepository(appConfig.DB)
-	userService := service.NewUserService(userRepo, appConfig.Token)
-	userController := controller.NewUserController(userService)
-
-	userRouter := chi.NewRouter()
-	userRouter.Get("/", userController.GetUsers)
-	userRouter.Post("/", userController.CreateUser)
-	userRouter.Post("/login", userController.LoginUser)
-	userRouter.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(appConfig.Token))
-		r.Use(jwtauth.Authenticator)
-		r.Get("/{id}", userController.GetUserById)
-		r.Put("/{id}", userController.UpdateUserById)
-		r.Put("/password/{id}", userController.UpdateUserPasswordById)
-		r.Delete("/{id}", userController.DeleteUserById)
-	})
-
-	return userRouter
-}
-
-func postRoutes(appConfig *config.AppConfig) chi.Router {
-	postRepo := repo.NewPostRepository(appConfig.DB)
-	postService := service.NewPostService(postRepo, appConfig.Token)
-	postController := controller.NewPostController(postService)
-
-	postRouter := chi.NewRouter()
-	postRouter.Get("/", postController.GetPosts)
-	postRouter.Get("/{id}", postController.GetPostById)
-	postRouter.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(appConfig.Token))
-		r.Use(jwtauth.Authenticator)
-		r.Post("/", postController.CreatePost)
-		r.Put("/{id}", postController.UpdatePostById)
-		r.Delete("/{id}", postController.DeletePostById)
-	})
-
-	return postRouter
-}
-
-func commentRoutes() chi.Router {
-	commentRepo := repo.NewCommentRepository(nil)
-	commentService := service.NewCommentService(commentRepo)
-	commentController := controller.NewCommentController(commentService)
-
-	r := chi.NewRouter()
-	r.Get("/", commentController.GetCommentById)
-
-	return r
 }
 
 // @title						Sociot Backend

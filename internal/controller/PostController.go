@@ -189,7 +189,63 @@ func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	response = controller.service.DeletePostById(postId)
+	response = controller.service.DeletePostById(postId, postBody.UserId)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+}
+
+// UpdatePostViewsById
+// @Summary		Updates views of a post by Id
+// @Description Updates views of a post by Id
+// @Tags		Posts
+// @Accept		json
+// @Produce		json
+// @Param		id		path		uint64		true	"Post Id"
+// @Success		200		{object}	entity.Response		"Updates views of a Post by Id"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/posts/views/{id} [put]
+func (controller *PostController) UpdatePostViewsById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	postId, err := strconv.Atoi(id)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	response := controller.service.UpdatePostViewsById(postId)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+}
+
+// GetPostByUserId
+// @Summary		Returns users post
+// @Description	Returns users post
+// @Tags		Posts
+// @Accept		json
+// @Produce		json
+// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
+// @Param		id		path		uint64		true	"User Id"
+// @Success		200		{object}	entity.Response		"Login User success response with Token"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		401		{object}	entity.Response		"Unauthorized"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/posts/users/{id} [get]
+func (controller *PostController) GetUserPosts(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+
+	err = utils.ValidateAuthToken(userId, r.Context())
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+	response := controller.service.GetUserPosts(userId)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 

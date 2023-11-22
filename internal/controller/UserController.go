@@ -264,10 +264,6 @@ func (controller *UserController) LoginUser(w http.ResponseWriter, r *http.Reque
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
-func (controller *UserController) GetUserPosts(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func (controller *UserController) GetUserComments(w http.ResponseWriter, r *http.Request) {
 
 }
