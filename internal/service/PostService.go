@@ -46,6 +46,7 @@ func (service *PostService) CreatePost(postBody *entity.PostRequestBody) entity.
 		UserId:  postBody.UserId,
 		Title:   postBody.Title,
 		Content: postBody.Content,
+		Tags:    postBody.Tags,
 	}
 	err := service.repo.CreatePost(post)
 	if err != nil {
@@ -61,6 +62,7 @@ func (service *PostService) UpdatePostById(postId int, postBody *entity.UpdatePo
 		PostId:  postId,
 		Title:   postBody.Title,
 		Content: postBody.Content,
+		Tags:    postBody.Tags,
 	}
 	err := service.repo.UpdatePostById(post)
 	if err != nil {

@@ -19,15 +19,17 @@ type Post struct {
 }
 
 type PostRequestBody struct {
-	UserId  int    `json:"userId" validate:"required"`
-	Title   string `json:"title" validate:"required,min=4"`
-	Content string `json:"content" validate:"required,min=4"`
+	UserId  int      `json:"userId" validate:"required"`
+	Title   string   `json:"title" validate:"required,min=4"`
+	Content string   `json:"content" validate:"required,min=4"`
+	Tags    []string `json:"tags"`
 }
 
 type UpdatePostRequestBody struct {
-	UserId  int    `json:"userId" validate:"required"`
-	Title   string `json:"title" validate:"required,min=4"`
-	Content string `json:"content" validate:"required,min=4"`
+	UserId  int      `json:"userId" validate:"required"`
+	Title   string   `json:"title" validate:"required,min=4"`
+	Content string   `json:"content" validate:"required,min=4"`
+	Tags    []string `json:"tags"`
 }
 
 type DeletePostRequestBody struct {
@@ -36,7 +38,7 @@ type DeletePostRequestBody struct {
 
 func ScanIntoPost(rows *sql.Rows) (*Post, error) {
 	post := new(Post)
-	var tagsList string
+	var tagsList []byte
 
 	err := rows.Scan(
 		&post.UserId,
@@ -52,9 +54,11 @@ func ScanIntoPost(rows *sql.Rows) (*Post, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	tags := strings.Split(tagsList, ",")
-	post.Tags = tags
+	if tagsList != nil {
+		post.Tags = strings.Split(string(tagsList), ",")
+	} else {
+		post.Tags = []string{}
+	}
 
 	return post, nil
 }
