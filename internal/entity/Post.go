@@ -2,6 +2,7 @@ package entity
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -11,6 +12,7 @@ type Post struct {
 	PostId    int       `json:"postId"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
+	Tags      []string  `json:"tags"`
 	Views     int       `json:"views"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -34,12 +36,15 @@ type DeletePostRequestBody struct {
 
 func ScanIntoPost(rows *sql.Rows) (*Post, error) {
 	post := new(Post)
+	var tagsList string
+
 	err := rows.Scan(
 		&post.UserId,
 		&post.UserName,
 		&post.PostId,
 		&post.Title,
 		&post.Content,
+		&tagsList,
 		&post.Views,
 		&post.CreatedAt,
 		&post.UpdatedAt,
@@ -47,6 +52,10 @@ func ScanIntoPost(rows *sql.Rows) (*Post, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	tags := strings.Split(tagsList, ",")
+	post.Tags = tags
+
 	return post, nil
 }
 

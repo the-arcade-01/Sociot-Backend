@@ -18,12 +18,18 @@ func NewPostRepository(DB *sql.DB) PostRepository {
 
 func (repo *PostRepository) GetPosts() ([]*entity.Post, error) {
 	query := `
-	SELECT 
+SELECT 
     u.userId,
     u.userName,
     p.postId,
     p.title,
     p.content,
+    (
+        SELECT GROUP_CONCAT(t.tag) 
+        FROM tags t 
+        JOIN post_tags pt ON t.tagId = pt.tagId 
+        WHERE pt.postId = p.postId
+    ) AS tags,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -34,7 +40,7 @@ LEFT JOIN
 LEFT JOIN 
     users u ON p.userId = u.userId
 ORDER BY 
-    views DESC; 
+    v.views DESC;
 	`
 	rows, err := repo.db.Query(query)
 	if err != nil {
@@ -53,12 +59,18 @@ ORDER BY
 
 func (repo *PostRepository) GetPostById(postId int) (*entity.Post, error) {
 	query := `
-	SELECT 
+SELECT 
     u.userId,
     u.userName,
     p.postId,
     p.title,
     p.content,
+    ( 
+        SELECT GROUP_CONCAT(t.tag)
+        FROM tags t
+        JOIN post_tags pt ON pt.tagId = t.tagId
+        WHERE pt.postId = p.postId
+    ) AS tags,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -165,12 +177,18 @@ func (repo *PostRepository) UpdatePostViewsById(postId int) error {
 
 func (repo *PostRepository) GetUserPosts(userId int) ([]*entity.Post, error) {
 	query := `
-	SELECT 
+SELECT 
     u.userId,
     u.userName,
     p.postId,
     p.title,
     p.content,
+    ( 
+        SELECT GROUP_CONCAT(t.tag)
+        FROM tags t
+        JOIN post_tags pt ON pt.tagId = t.tagId
+        WHERE pt.postId = p.postId
+    ) AS tags,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -247,7 +265,7 @@ func (repo *PostRepository) DeletePostByUserId(userId int) error {
 
 func (repo *PostRepository) GetTags() ([]string, error) {
 	query := `
-	SELECT
+SELECT
 	t.tag
 FROM
 	tags t 
