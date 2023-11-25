@@ -111,3 +111,15 @@ func (service *PostService) GetUserPosts(userId int) entity.Response {
 	response := entity.NewResponseObject(posts, nil, http.StatusOK)
 	return response
 }
+
+func (service *PostService) GetTags() entity.Response {
+	tags, err := service.repo.GetTags()
+
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
+
+	response := entity.NewResponseObject(tags, nil, http.StatusOK)
+	return response
+}

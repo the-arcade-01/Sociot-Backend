@@ -49,3 +49,14 @@ func ScanIntoPost(rows *sql.Rows) (*Post, error) {
 	}
 	return post, nil
 }
+
+func ScanIntoTag(rows *sql.Rows) (string, error) {
+	var tag string
+	err := rows.Scan(
+		&tag,
+	)
+	if err != nil {
+		return "", err
+	}
+	return tag, nil
+}

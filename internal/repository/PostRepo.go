@@ -244,3 +244,34 @@ func (repo *PostRepository) DeletePostByUserId(userId int) error {
 
 	return nil
 }
+
+func (repo *PostRepository) GetTags() ([]string, error) {
+	query := `
+	SELECT
+	t.tag
+FROM
+	tags t 
+LEFT JOIN 
+	post_tags pt ON pt.tagId = t.tagId
+GROUP BY 
+ 	t.tagId 
+ORDER BY 
+	COUNT(pt.tagId) 
+DESC
+	`
+	rows, err := repo.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var tags []string
+	for rows.Next() {
+		tag, err := entity.ScanIntoTag(rows)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+
+	return tags, nil
+}

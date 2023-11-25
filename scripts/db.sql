@@ -40,3 +40,23 @@ CREATE TABLE IF NOT EXISTS `sociot`.`post_views` (
     `views` INT NOT NULL DEFAULT 0,
     FOREIGN KEY (postId) REFERENCES `sociot`.`posts`(postId)
 );
+
+-- ------------------
+-- Table `tags`
+-- ------------------
+
+CREATE TABLE IF NOT EXISTS `sociot`.`tags` (
+    `tagId` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `tag` VARCHAR(100) NOT NULL
+);
+
+-- ------------------
+-- Table `post_tags`
+-- ------------------
+
+CREATE TABLE IF NOT EXISTS `sociot`.`post_tags` (
+    `postId` INT NOT NULL,
+    `tagId` INT NOT NULL,
+    FOREIGN KEY (postId) REFERENCES `sociot`.`posts`(postId),
+    FOREIGN KEY (tagId) REFERENCES `sociot`.`tags`(tagId)
+);
