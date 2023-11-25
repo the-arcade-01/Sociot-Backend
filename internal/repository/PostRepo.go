@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"sociot/internal/entity"
-	"strings"
 )
 
 type PostRepository struct {
@@ -18,12 +17,18 @@ func NewPostRepository(DB *sql.DB) PostRepository {
 
 func (repo *PostRepository) GetPosts() ([]*entity.Post, error) {
 	query := `
-	SELECT 
+SELECT 
     u.userId,
     u.userName,
     p.postId,
     p.title,
     p.content,
+    (
+        SELECT GROUP_CONCAT(t.tag) 
+        FROM tags t 
+        JOIN post_tags pt ON t.tagId = pt.tagId 
+        WHERE pt.postId = p.postId
+    ) AS tags,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -34,7 +39,7 @@ LEFT JOIN
 LEFT JOIN 
     users u ON p.userId = u.userId
 ORDER BY 
-    views DESC; 
+    v.views DESC;
 	`
 	rows, err := repo.db.Query(query)
 	if err != nil {
@@ -53,12 +58,18 @@ ORDER BY
 
 func (repo *PostRepository) GetPostById(postId int) (*entity.Post, error) {
 	query := `
-	SELECT 
+SELECT 
     u.userId,
     u.userName,
     p.postId,
     p.title,
     p.content,
+    ( 
+        SELECT GROUP_CONCAT(t.tag)
+        FROM tags t
+        JOIN post_tags pt ON pt.tagId = t.tagId
+        WHERE pt.postId = p.postId
+    ) AS tags,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -86,9 +97,8 @@ WHERE
 }
 
 func (repo *PostRepository) CreatePost(post *entity.Post) error {
-	query := `INSERT INTO posts (userId, title, content) VALUES (?, ?, ?)`
 	result, err := repo.db.Exec(
-		query,
+		`INSERT INTO posts (userId, title, content) VALUES (?, ?, ?)`,
 		post.UserId,
 		post.Title,
 		post.Content,
@@ -102,15 +112,13 @@ func (repo *PostRepository) CreatePost(post *entity.Post) error {
 		return err
 	}
 
-	query = `INSERT INTO post_views (postId) VALUE (?)`
-	_, err = repo.db.Exec(
-		query,
-		postId,
-	)
+	err = repo.InsertPostView(postId)
 	if err != nil {
 		repo.DeletePostById(int(postId))
 		return err
 	}
+
+	repo.InsertTags(postId, post.Tags)
 
 	return nil
 }
@@ -126,28 +134,29 @@ func (repo *PostRepository) UpdatePostById(post *entity.Post) error {
 	if err != nil {
 		return err
 	}
+	repo.DeleteTagsByPostId(post.PostId)
+	repo.InsertTags(int64(post.PostId), post.Tags)
+
 	return nil
 }
 
 func (repo *PostRepository) DeletePostById(postId int) error {
-	query := `DELETE FROM post_views WHERE postId = ?`
-	_, err := repo.db.Exec(
-		query,
-		postId,
-	)
+	repo.DeleteTagsByPostId(postId)
 
+	err := repo.DeletePostViews([]int{postId})
 	if err != nil {
 		return err
 	}
 
-	query = `DELETE FROM posts WHERE postId = ?`
 	_, err = repo.db.Exec(
-		query,
+		`DELETE FROM posts WHERE postId = ?`,
 		postId,
 	)
 	if err != nil {
+		repo.InsertPostView(int64(postId))
 		return err
 	}
+
 	return nil
 }
 
@@ -165,12 +174,18 @@ func (repo *PostRepository) UpdatePostViewsById(postId int) error {
 
 func (repo *PostRepository) GetUserPosts(userId int) ([]*entity.Post, error) {
 	query := `
-	SELECT 
+SELECT 
     u.userId,
     u.userName,
     p.postId,
     p.title,
     p.content,
+    ( 
+        SELECT GROUP_CONCAT(t.tag)
+        FROM tags t
+        JOIN post_tags pt ON pt.tagId = t.tagId
+        WHERE pt.postId = p.postId
+    ) AS tags,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -198,17 +213,16 @@ WHERE
 	return posts, nil
 }
 
-func (repo *PostRepository) DeletePostViews(postIds []interface{}) error {
+func (repo *PostRepository) DeletePostViews(postIds []int) error {
 	if len(postIds) == 0 {
 		return nil
 	}
 
-	query := `DELETE FROM post_views WHERE postId IN (`
-	query += strings.Repeat("?, ", len(postIds)-1) + "?)"
-
-	_, err := repo.db.Exec(query, postIds...)
-	if err != nil {
-		return err
+	for _, postId := range postIds {
+		_, err := repo.db.Exec(`DELETE FROM post_views WHERE postId = ?`, postId)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -221,7 +235,7 @@ func (repo *PostRepository) DeletePostByUserId(userId int) error {
 	}
 	defer rows.Close()
 
-	var postIds []interface{}
+	var postIds []int
 	for rows.Next() {
 		var postId int
 		err := rows.Scan(&postId)
@@ -236,6 +250,10 @@ func (repo *PostRepository) DeletePostByUserId(userId int) error {
 		return err
 	}
 
+	for _, postId := range postIds {
+		repo.DeleteTagsByPostId(postId)
+	}
+
 	query = `DELETE FROM posts WHERE userId = ?`
 	_, err = repo.db.Exec(query, userId)
 	if err != nil {
@@ -243,4 +261,71 @@ func (repo *PostRepository) DeletePostByUserId(userId int) error {
 	}
 
 	return nil
+}
+
+func (repo *PostRepository) GetTags() ([]string, error) {
+	query := `
+SELECT
+	t.tag
+FROM
+	tags t 
+LEFT JOIN 
+	post_tags pt ON pt.tagId = t.tagId
+GROUP BY 
+ 	t.tagId 
+ORDER BY 
+	COUNT(pt.tagId) 
+DESC
+	`
+	rows, err := repo.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var tags []string
+	for rows.Next() {
+		tag, err := entity.ScanIntoTag(rows)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+
+	return tags, nil
+}
+
+func (repo *PostRepository) InsertPostView(postId int64) error {
+	_, err := repo.db.Exec(
+		`INSERT INTO post_views (postId) VALUE (?)`,
+		postId,
+	)
+	return err
+}
+
+func (repo *PostRepository) InsertTags(postId int64, tags []string) {
+	for _, tag := range tags {
+		var tagId int64
+		err := repo.db.QueryRow(`SELECT tagId FROM tags WHERE tag = ?`, tag).Scan(&tagId)
+		if err != nil {
+			result, err := repo.db.Exec(`INSERT INTO tags (tag) VALUE (?)`, tag)
+			if err != nil {
+				continue
+			}
+			tagId, err = result.LastInsertId()
+			if err != nil {
+				continue
+			}
+		}
+		_, err = repo.db.Exec(
+			`INSERT INTO post_tags (postId, tagId) VALUES (?, ?)`,
+			postId, tagId)
+		if err != nil {
+			continue
+		}
+	}
+}
+
+func (repo *PostRepository) DeleteTagsByPostId(postId int) error {
+	_, err := repo.db.Exec(`DELETE FROM post_tags WHERE postId = ?`, postId)
+	return err
 }

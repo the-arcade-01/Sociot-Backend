@@ -73,9 +73,9 @@ POST /v1/user/
 GET /v1/user/{id}
 PUT /v1/user/{id}
 DELETE /v1/user/{id}
-GET /v1/user/posts
-GET /v1/user/comments
-GET /v1/tags
+GET /v1/posts/users/{id}
+GET /v1/comments/users/{id}
+GET /v1/posts/tags
 GET /v1/posts?sortBy=views&tag=tech
 POST /v1/posts
 GET /v1/posts/{id}

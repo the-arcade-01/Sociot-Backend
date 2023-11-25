@@ -46,6 +46,7 @@ func (service *PostService) CreatePost(postBody *entity.PostRequestBody) entity.
 		UserId:  postBody.UserId,
 		Title:   postBody.Title,
 		Content: postBody.Content,
+		Tags:    postBody.Tags,
 	}
 	err := service.repo.CreatePost(post)
 	if err != nil {
@@ -61,6 +62,7 @@ func (service *PostService) UpdatePostById(postId int, postBody *entity.UpdatePo
 		PostId:  postId,
 		Title:   postBody.Title,
 		Content: postBody.Content,
+		Tags:    postBody.Tags,
 	}
 	err := service.repo.UpdatePostById(post)
 	if err != nil {
@@ -109,5 +111,17 @@ func (service *PostService) GetUserPosts(userId int) entity.Response {
 	}
 
 	response := entity.NewResponseObject(posts, nil, http.StatusOK)
+	return response
+}
+
+func (service *PostService) GetTags() entity.Response {
+	tags, err := service.repo.GetTags()
+
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
+
+	response := entity.NewResponseObject(tags, nil, http.StatusOK)
 	return response
 }

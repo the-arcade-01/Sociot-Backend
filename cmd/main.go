@@ -59,6 +59,7 @@ func (server *Server) MountHandlers() {
 		postRouter := chi.NewRouter()
 		postRouter.Get("/", postController.GetPosts)
 		postRouter.Get("/{id}", postController.GetPostById)
+		postRouter.Get("/tags", postController.GetTags)
 		postRouter.Put("/views/{id}", postController.UpdatePostViewsById)
 		postRouter.Group(func(r chi.Router) {
 			r.Use(jwtauth.Verifier(server.AppConfig.Token))

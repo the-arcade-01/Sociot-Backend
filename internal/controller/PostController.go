@@ -249,6 +249,20 @@ func (controller *PostController) GetUserPosts(w http.ResponseWriter, r *http.Re
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
+// GetTags
+// @Summary		Returns top trending tags
+// @Description	Returns top trending tags
+// @Tags		Posts
+// @Accept		json
+// @Produce		json
+// @Success		200		{object}	entity.Response		"Normal response"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/posts/tags [get]
+func (controller *PostController) GetTags(w http.ResponseWriter, r *http.Request) {
+	response := controller.service.GetTags()
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+}
+
 func (controller *PostController) GetCommentsByPostId(w http.ResponseWriter, r *http.Request) {
 
 }
