@@ -37,6 +37,7 @@ func ValidateAuthToken(userId int, ctx context.Context) error {
 
 func ValidateRequestBody(body any) (entity.Response, error) {
 	validate := validator.New()
+	validate.RegisterValidation("TagsInputValidator", TagsInputValidator)
 	err := validate.Struct(body)
 	var errMsg string
 	if err != nil {
@@ -48,6 +49,16 @@ func ValidateRequestBody(body any) (entity.Response, error) {
 	return response, err
 }
 
+func TagsInputValidator(fl validator.FieldLevel) bool {
+	tags := fl.Field().Interface().([]string)
+	for _, tag := range tags {
+		if tag == "" {
+			return false
+		}
+	}
+	return true
+}
+
 func getErrMsg(err validator.FieldError) error {
 	switch err.Tag() {
 	case "required":
@@ -55,7 +66,9 @@ func getErrMsg(err validator.FieldError) error {
 	case "min":
 		return fmt.Errorf("min length of %v is 4 ", err.Field())
 	case "email":
-		return fmt.Errorf("please provide a valid email ")
+		return fmt.Errorf("please provide a valid email")
+	case "TagsInputValidator":
+		return fmt.Errorf("tags can't be empty")
 	}
 	return fmt.Errorf("please check the required params ")
 }
