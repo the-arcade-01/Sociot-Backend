@@ -29,7 +29,7 @@ type UpdatePostRequestBody struct {
 	UserId  int      `json:"userId" validate:"required"`
 	Title   string   `json:"title" validate:"required,min=4"`
 	Content string   `json:"content" validate:"required,min=4"`
-	Tags    []string `json:"tags"`
+	Tags    []string `json:"tags" validate:"TagsInputValidator"`
 }
 
 type DeletePostRequestBody struct {
