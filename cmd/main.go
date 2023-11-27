@@ -49,9 +49,6 @@ func (server *Server) MountHandlers() {
 	versionOne := chi.NewRouter()
 
 	versionOne.Route("/v1", func(router chi.Router) {
-		greetRouter := chi.NewRouter()
-		greetRouter.Get("/greet", controller.Greet)
-
 		postRepo := repo.NewPostRepository(server.AppConfig.DB)
 		postService := service.NewPostService(postRepo, server.AppConfig.Token)
 		postController := controller.NewPostController(postService)
@@ -87,7 +84,14 @@ func (server *Server) MountHandlers() {
 			r.Delete("/{id}", userController.DeleteUserById)
 		})
 
-		router.Mount("/greet", greetRouter)
+		generalRepo := repo.NewGeneralRepository(server.AppConfig.DB)
+		generalService := service.NewGeneralService(generalRepo)
+		generalController := controller.NewGeneralController(generalService)
+
+		generalRouter := chi.NewRouter()
+		generalRouter.Get("/", generalController.Search)
+
+		router.Mount("/search", generalRouter)
 		router.Mount("/users", userRouter)
 		router.Mount("/posts", postRouter)
 	})

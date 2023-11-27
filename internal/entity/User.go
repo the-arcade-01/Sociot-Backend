@@ -23,6 +23,13 @@ type UserDetails struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type UserSearch struct {
+	UserId    int       `json:"userId"`
+	UserName  string    `json:"username"`
+	PostCount int       `json:"postCount"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type UserLoginDetails struct {
 	Token  string `json:"token"`
 	UserId int    `json:"userId"`
@@ -59,6 +66,20 @@ func ScanIntoUser(rows *sql.Rows) (*User, error) {
 	)
 	if err != nil {
 		log.Printf("error occurred while scanning db row into user, %v\n", err)
+		return nil, err
+	}
+	return user, nil
+}
+
+func ScanIntoUserSearch(rows *sql.Rows) (*UserSearch, error) {
+	user := new(UserSearch)
+	err := rows.Scan(
+		&user.UserId,
+		&user.UserName,
+		&user.PostCount,
+		&user.CreatedAt,
+	)
+	if err != nil {
 		return nil, err
 	}
 	return user, nil
