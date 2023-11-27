@@ -2,7 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"sociot/internal/entity"
+	"sociot/internal/utils"
 )
 
 type PostRepository struct {
@@ -15,36 +17,32 @@ func NewPostRepository(DB *sql.DB) PostRepository {
 	}
 }
 
-func (repo *PostRepository) GetPosts() ([]*entity.Post, error) {
-	query := `
-SELECT 
-    u.userId,
-    u.userName,
-    p.postId,
-    p.title,
-    p.content,
-    (
-        SELECT GROUP_CONCAT(t.tag) 
-        FROM tags t 
-        JOIN post_tags pt ON t.tagId = pt.tagId 
-        WHERE pt.postId = p.postId
-    ) AS tags,
-    v.views,
-    p.createdAt,
-    p.updatedAt
-FROM 
-    posts p
-LEFT JOIN 
-    post_views v ON p.postId = v.postId
-LEFT JOIN 
-    users u ON p.userId = u.userId
-ORDER BY 
-    v.views DESC;
-	`
-	rows, err := repo.db.Query(query)
-	if err != nil {
-		return nil, err
+func (repo *PostRepository) GetPosts(sort string, tag string) ([]*entity.Post, error) {
+	sortParam := "v.views"
+	switch sort {
+	case "new":
+		sortParam = "p.createdAt"
+	default:
+		sortParam = "v.views"
 	}
+	var rows *sql.Rows
+	if tag != "" {
+		filter := "%" + tag + "%"
+		query := fmt.Sprintf(utils.GET_POSTS_QUERY_TAGS, filter, sortParam)
+		row, err := repo.db.Query(query)
+		if err != nil {
+			return nil, err
+		}
+		rows = row
+	} else {
+		query := fmt.Sprintf(utils.GET_POSTS_QUERY, sortParam)
+		row, err := repo.db.Query(query)
+		if err != nil {
+			return nil, err
+		}
+		rows = row
+	}
+
 	var posts []*entity.Post
 	for rows.Next() {
 		post, err := entity.ScanIntoPost(rows)

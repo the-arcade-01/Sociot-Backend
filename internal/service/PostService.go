@@ -21,8 +21,8 @@ func NewPostService(postRepo repo.PostRepository, token *jwtauth.JWTAuth) PostSe
 	}
 }
 
-func (service *PostService) GetPosts() entity.Response {
-	posts, err := service.repo.GetPosts()
+func (service *PostService) GetPosts(sort string, tag string) entity.Response {
+	posts, err := service.repo.GetPosts(sort, tag)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response

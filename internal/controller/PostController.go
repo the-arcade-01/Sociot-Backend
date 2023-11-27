@@ -27,12 +27,17 @@ func NewPostController(postService service.PostService) *PostController {
 // @Tags 		Posts
 // @Accept 		json
 // @Produce 	json
+// @Param 		sort 	query 		string		true	"Sorting option" Enums(hot, new, vote)
+// @Param		tag 	query 		string 		false	"Filtering for tags"
 // @Success 	200 	{object} 	entity.Response 	"List of all posts"
 // @Failure 	400		{object}	entity.Response 	"Bad request"
 // @Failure 	500 	{object} 	entity.Response 	"Internal server error"
 // @Router 		/posts [get]
 func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Request) {
-	response := controller.service.GetPosts()
+	sort := r.URL.Query().Get("sort")
+	tag := r.URL.Query().Get("tag")
+
+	response := controller.service.GetPosts(sort, tag)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
