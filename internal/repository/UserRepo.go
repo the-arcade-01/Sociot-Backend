@@ -5,15 +5,18 @@ import (
 	"errors"
 	"sociot/internal/entity"
 	"sociot/internal/utils"
+	"strconv"
 )
 
 type UserRepository struct {
-	db *sql.DB
+	db       *sql.DB
+	postRepo PostRepository
 }
 
-func NewUserRepository(DB *sql.DB) UserRepository {
+func NewUserRepository(DB *sql.DB, repo PostRepository) UserRepository {
 	return UserRepository{
-		db: DB,
+		db:       DB,
+		postRepo: repo,
 	}
 }
 
@@ -72,23 +75,39 @@ func (repo *UserRepository) GetUserById(userId int) (*entity.UserDetails, error)
 	return userDetails, nil
 }
 
-func (repo *UserRepository) UpdateUserById(userId int, user *entity.User) error {
-	query := `UPDATE users SET email = ?, userName = ? WHERE userId = ?`
+func (repo *UserRepository) UpdateUserNameById(userId int, user *entity.User) error {
+	query := `UPDATE users SET userName = ? WHERE userId = ?`
 	_, err := repo.db.Exec(
 		query,
-		user.Email,
 		user.UserName,
 		userId,
 	)
+	return err
+}
+
+func (repo *UserRepository) UpdateUserPasswordById(userId int, user *entity.User) error {
+	hashPassword, err := utils.GetHashPassword(user.Password)
 	if err != nil {
 		return err
 	}
-	return nil
+
+	query := `UPDATE users SET password = ? WHERE userId = ?`
+	_, err = repo.db.Exec(
+		query,
+		hashPassword,
+		userId,
+	)
+
+	return err
 }
 
 func (repo *UserRepository) DeleteUserById(userId int) error {
+	err := repo.postRepo.DeletePostByUserId(userId)
+	if err != nil {
+		return err
+	}
 	query := `DELETE FROM users WHERE userId = ?`
-	_, err := repo.db.Exec(
+	_, err = repo.db.Exec(
 		query, userId,
 	)
 	if err != nil {
@@ -131,6 +150,10 @@ func (repo *UserRepository) LoginUser(user *entity.User) (*entity.UserDetails, e
 		}
 	}
 
+	if dbUser == nil {
+		return nil, errors.New("user doesn't exists, please create an account")
+	}
+
 	if err := utils.CheckPassword(dbUser.Password, user.Password); err != nil {
 		return nil, errors.New("incorrect password, please try again")
 	}
@@ -144,4 +167,31 @@ func (repo *UserRepository) LoginUser(user *entity.User) (*entity.UserDetails, e
 	}
 
 	return userDetails, nil
+}
+
+func (repo *UserRepository) CheckExistingUser(user *entity.User) error {
+	query := `SELECT COUNT(userId) FROM users WHERE userName = ?`
+	var records string
+	err := repo.db.QueryRow(query, user.UserName).Scan(&records)
+	if err != nil {
+		return errors.New("please use different username")
+	}
+	recordsNum, err := strconv.Atoi(records)
+
+	if recordsNum != 0 || err != nil {
+		return errors.New("username already taken, please use different username")
+	}
+
+	query = `SELECT COUNT(email) FROM users WHERE email = ?`
+	err = repo.db.QueryRow(query, user.Email).Scan(&records)
+	if err != nil {
+		return errors.New("please use different email")
+	}
+	recordsNum, err = strconv.Atoi(records)
+
+	if recordsNum != 0 || err != nil {
+		return errors.New("email already exists, please use different email")
+	}
+
+	return nil
 }

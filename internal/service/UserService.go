@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sociot/internal/entity"
 	repo "sociot/internal/repository"
+	"time"
 
 	"github.com/go-chi/jwtauth/v5"
 )
@@ -41,17 +42,34 @@ func (service *UserService) GetUserById(userId int) entity.Response {
 	return response
 }
 
-func (service *UserService) UpdateUserById(userId int, userBody *entity.UpdateUserDetailsRequestBody) entity.Response {
+func (service *UserService) UpdateUserById(userId int, userBody *entity.UpdateUserNameReqBody) entity.Response {
 	user := &entity.User{
 		UserName: userBody.UserName,
-		Email:    userBody.Email,
 	}
-	err := service.repo.UpdateUserById(userId, user)
+	err := service.repo.CheckExistingUser(user)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		return response
+	}
+	err = service.repo.UpdateUserNameById(userId, user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
 	}
-	response := entity.NewResponseObject(nil, fmt.Sprintf("Details updated for User: %v", userId), http.StatusAccepted)
+	response := entity.NewResponseObject(nil, fmt.Sprintf("Username updated for User: %v", userId), http.StatusAccepted)
+	return response
+}
+
+func (service *UserService) UpdateUserPasswordById(userId int, userBody *entity.UpdateUserPasswordReqBody) entity.Response {
+	user := &entity.User{
+		Password: userBody.Password,
+	}
+	err := service.repo.UpdateUserPasswordById(userId, user)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
+		return response
+	}
+	response := entity.NewResponseObject(nil, fmt.Sprintf("Password updated for User: %v", userId), http.StatusAccepted)
 	return response
 }
 
@@ -71,14 +89,17 @@ func (service *UserService) CreateUser(userBody *entity.CreateUserRequestBody) e
 		Email:    userBody.Email,
 		Password: userBody.Password,
 	}
-
-	err := service.repo.CreateUser(user)
+	err := service.repo.CheckExistingUser(user)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		return response
+	}
+	err = service.repo.CreateUser(user)
 	if err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusInternalServerError)
 		return response
 	}
-	// validation using validate library,
-	// validation for user fields, like email, password, userName should not be empty
+
 	response := entity.NewResponseObject(nil, "User created successfully", http.StatusCreated)
 	return response
 }
@@ -95,7 +116,8 @@ func (service *UserService) LoginUser(userBody *entity.LoginUserRequestBody) ent
 		return response
 	}
 
-	claims := map[string]interface{}{"userId": userDetails.UserId, "email": userDetails.Email, "userName": userDetails.UserName}
+	expirationTime := time.Now().Add(72 * time.Hour)
+	claims := map[string]interface{}{"userId": userDetails.UserId, "email": userDetails.Email, "userName": userDetails.UserName, "exp": expirationTime}
 	_, tokenString, err := service.token.Encode(claims)
 
 	if err != nil {
@@ -103,6 +125,11 @@ func (service *UserService) LoginUser(userBody *entity.LoginUserRequestBody) ent
 		return response
 	}
 
-	response := entity.NewResponseObject(tokenString, "User login successfully", http.StatusOK)
+	userLoginDetails := entity.UserLoginDetails{
+		Token:  tokenString,
+		UserId: userDetails.UserId,
+	}
+
+	response := entity.NewResponseObject(userLoginDetails, "User login successfully", http.StatusOK)
 	return response
 }

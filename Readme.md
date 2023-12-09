@@ -4,7 +4,7 @@ Build in Go
 
 ## Installation
 
-```
+```bash
 go get github.com/go-chi/chi/v5
 go get github.com/go-chi/chi/v5/middleware
 go get github.com/go-chi/cors
@@ -14,51 +14,35 @@ go get github.com/go-chi/jwtauth/v5
 go get github.com/joho/godotenv
 go get github.com/go-sql-driver/mysql
 go get golang.org/x/crypto/bcrypt
+go get -u github.com/go-playground/validator/v10
 ```
 
-## Project Structure
+## Docker cmds
 
-```shell
-.
-├── bin
-│ └── sociot
-├── cmd
-│ └── main.go
-├── config
-│ └── config.go
-├── docs
-├── go.mod
-├── internal
-│ ├── controller
-│ ├── entity
-│ ├── repository
-│ └── service
-├── Makefile
-├── Readme.md
-└── scripts
-├── db.sql
-└── setup.sh
+```bash
+docker compose build
+docker compose up
 ```
 
-## API Design
+If you face some corrupt db issue
 
-```js
-POST /v1/user/login
-POST /v1/user/
-GET /v1/user/{id}
-PUT /v1/user/{id}
-DELETE /v1/user/{id}
-GET /v1/user/posts
-GET /v1/user/comments
-GET /v1/tags
-GET /v1/posts?sortBy=views&tag=tech
-POST /v1/posts
-GET /v1/posts/{id}
-PUT /v1/posts/{id}
-DELETE /v1/posts/{id}
-GET /v1/posts/{postId}/comments?sortBy=votes
-POST /v1/posts/{postId}/comments
-GET /v1/comments/{commentId}
-PUT /v1/comments/{commentId}
-DELETE /v1/comments/{commentId}
+```bash
+docker image rm --force <app-container-id> <mysql-container-id>
+
+# remove the container to which the volume is attached
+docker rm -v <container-id>
+
+docker volume rm --force <volume-name>
+```
+
+If you face db migrations issue
+
+```bash
+docker exec -it <mysql-container-id> sh
+
+# cd into below folder and check whether sql file is present or not
+cd docker-entrypoint-initdb.d/
+
+# run below cmd to populate tables
+mysql -u <user> -p < ./<sql-file>
 ```
