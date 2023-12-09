@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"sociot/config"
-	controller "sociot/internal/controller"
+	handler "sociot/internal/handler"
 	repo "sociot/internal/repository"
 	service "sociot/internal/service"
 
@@ -49,61 +49,54 @@ func (server *Server) MountHandlers() {
 	versionOne := chi.NewRouter()
 
 	versionOne.Route("/v1", func(router chi.Router) {
-		router.Mount("/greet", greetRoutes())
-		router.Mount("/users", userRoutes(server.AppConfig))
-		router.Mount("/posts", postRoutes())
-		router.Mount("/comments", commentRoutes())
+		postRepo := repo.NewPostRepository(server.AppConfig.DB)
+		postService := service.NewPostService(postRepo, server.AppConfig.Token)
+		postHandler := handler.NewPostHandler(postService)
+
+		postRouter := chi.NewRouter()
+		postRouter.Get("/", postHandler.GetPosts)
+		postRouter.Get("/{id}", postHandler.GetPostById)
+		postRouter.Get("/tags", postHandler.GetTags)
+		postRouter.Put("/views/{id}", postHandler.UpdatePostViewsById)
+		postRouter.Get("/users/{id}", postHandler.GetUserPosts)
+		postRouter.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(server.AppConfig.Token))
+			r.Use(jwtauth.Authenticator)
+			r.Post("/", postHandler.CreatePost)
+			r.Put("/{id}", postHandler.UpdatePostById)
+			r.Delete("/{id}", postHandler.DeletePostById)
+		})
+
+		userRepo := repo.NewUserRepository(server.AppConfig.DB, postRepo)
+		userService := service.NewUserService(userRepo, server.AppConfig.Token)
+		userHandler := handler.NewUserHandler(userService)
+
+		userRouter := chi.NewRouter()
+		userRouter.Get("/", userHandler.GetUsers)
+		userRouter.Post("/", userHandler.CreateUser)
+		userRouter.Post("/login", userHandler.LoginUser)
+		userRouter.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(server.AppConfig.Token))
+			r.Use(jwtauth.Authenticator)
+			r.Get("/{id}", userHandler.GetUserById)
+			r.Put("/{id}", userHandler.UpdateUserById)
+			r.Put("/password/{id}", userHandler.UpdateUserPasswordById)
+			r.Delete("/{id}", userHandler.DeleteUserById)
+		})
+
+		generalRepo := repo.NewGeneralRepository(server.AppConfig.DB)
+		generalService := service.NewGeneralService(generalRepo)
+		generalHandler := handler.NewGeneralHandler(generalService)
+
+		generalRouter := chi.NewRouter()
+		generalRouter.Get("/", generalHandler.Search)
+
+		router.Mount("/search", generalRouter)
+		router.Mount("/users", userRouter)
+		router.Mount("/posts", postRouter)
 	})
 	server.Router.Get("/swagger/*", httpSwagger.WrapHandler)
 	server.Router.Mount("/api", versionOne)
-}
-
-func greetRoutes() chi.Router {
-	r := chi.NewRouter()
-	r.Get("/", controller.Greet)
-	return r
-}
-
-func userRoutes(appConfig *config.AppConfig) chi.Router {
-	userRepo := repo.NewUserRepository(appConfig.DB)
-	userService := service.NewUserService(userRepo, appConfig.Token)
-	userController := controller.NewUserController(userService)
-
-	userRouter := chi.NewRouter()
-	userRouter.Get("/", userController.GetUsers)
-	userRouter.Post("/", userController.CreateUser)
-	userRouter.Post("/login", userController.LoginUser)
-	userRouter.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(appConfig.Token))
-		r.Use(jwtauth.Authenticator)
-		r.Get("/{id}", userController.GetUserById)
-		r.Put("/{id}", userController.UpdateUserById)
-		r.Delete("/{id}", userController.DeleteUserById)
-	})
-
-	return userRouter
-}
-
-func postRoutes() chi.Router {
-	postRepo := repo.NewPostRepository(nil)
-	postService := service.NewPostService(postRepo)
-	postController := controller.NewPostController(postService)
-
-	r := chi.NewRouter()
-	r.Get("/", postController.GetPosts)
-
-	return r
-}
-
-func commentRoutes() chi.Router {
-	commentRepo := repo.NewCommentRepository(nil)
-	commentService := service.NewCommentService(commentRepo)
-	commentController := controller.NewCommentController(commentService)
-
-	r := chi.NewRouter()
-	r.Get("/", commentController.GetCommentById)
-
-	return r
 }
 
 // @title						Sociot Backend
