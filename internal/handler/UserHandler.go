@@ -11,12 +11,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type UserController struct {
+type UserHandler struct {
 	service service.UserService
 }
 
-func NewUserController(userService service.UserService) UserController {
-	return UserController{
+func NewUserHandler(userService service.UserService) UserHandler {
+	return UserHandler{
 		service: userService,
 	}
 }
@@ -31,7 +31,7 @@ func NewUserController(userService service.UserService) UserController {
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users [get]
-func (controller *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	response := controller.service.GetUsers()
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
@@ -51,7 +51,7 @@ func (controller *UserController) GetUsers(w http.ResponseWriter, r *http.Reques
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users/{id} [get]
-func (controller *UserController) GetUserById(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	userId, err := strconv.Atoi(id)
 	if err != nil {
@@ -87,7 +87,7 @@ func (controller *UserController) GetUserById(w http.ResponseWriter, r *http.Req
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users/{id} [put]
-func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) UpdateUserById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	userId, err := strconv.Atoi(id)
 	if err != nil {
@@ -137,7 +137,7 @@ func (controller *UserController) UpdateUserById(w http.ResponseWriter, r *http.
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users/password/{id} [put]
-func (controller *UserController) UpdateUserPasswordById(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) UpdateUserPasswordById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	userId, err := strconv.Atoi(id)
 	if err != nil {
@@ -186,7 +186,7 @@ func (controller *UserController) UpdateUserPasswordById(w http.ResponseWriter, 
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users/{id} [delete]
-func (controller *UserController) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	userId, err := strconv.Atoi(id)
 	if err != nil {
@@ -217,7 +217,7 @@ func (controller *UserController) DeleteUserById(w http.ResponseWriter, r *http.
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users [post]
-func (controller *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	userBody := new(entity.CreateUserRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
@@ -246,7 +246,7 @@ func (controller *UserController) CreateUser(w http.ResponseWriter, r *http.Requ
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/users/login [post]
-func (controller *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	userBody := new(entity.LoginUserRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&userBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
@@ -264,6 +264,6 @@ func (controller *UserController) LoginUser(w http.ResponseWriter, r *http.Reque
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
-func (controller *UserController) GetUserComments(w http.ResponseWriter, r *http.Request) {
+func (controller *UserHandler) GetUserComments(w http.ResponseWriter, r *http.Request) {
 
 }

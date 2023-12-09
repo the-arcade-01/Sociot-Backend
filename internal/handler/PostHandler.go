@@ -11,12 +11,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type PostController struct {
+type PostHandler struct {
 	service service.PostService
 }
 
-func NewPostController(postService service.PostService) *PostController {
-	return &PostController{
+func NewPostHandler(postService service.PostService) *PostHandler {
+	return &PostHandler{
 		service: postService,
 	}
 }
@@ -33,7 +33,7 @@ func NewPostController(postService service.PostService) *PostController {
 // @Failure 	400		{object}	entity.Response 	"Bad request"
 // @Failure 	500 	{object} 	entity.Response 	"Internal server error"
 // @Router 		/posts [get]
-func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	sort := r.URL.Query().Get("sort")
 	tag := r.URL.Query().Get("tag")
 
@@ -54,7 +54,7 @@ func (controller *PostController) GetPosts(w http.ResponseWriter, r *http.Reques
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/posts [post]
-func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	postBody := new(entity.PostRequestBody)
 	if err := json.NewDecoder(r.Body).Decode(&postBody); err != nil {
 		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
@@ -91,7 +91,7 @@ func (controller *PostController) CreatePost(w http.ResponseWriter, r *http.Requ
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/posts/{id} [get]
-func (controller *PostController) GetPostById(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) GetPostById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	postId, err := strconv.Atoi(id)
 	if err != nil {
@@ -117,7 +117,7 @@ func (controller *PostController) GetPostById(w http.ResponseWriter, r *http.Req
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/posts/{id} [put]
-func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) UpdatePostById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	postId, err := strconv.Atoi(id)
 	if err != nil {
@@ -164,7 +164,7 @@ func (controller *PostController) UpdatePostById(w http.ResponseWriter, r *http.
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/posts/{id} [delete]
-func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) DeletePostById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	postId, err := strconv.Atoi(id)
 	if err != nil {
@@ -209,7 +209,7 @@ func (controller *PostController) DeletePostById(w http.ResponseWriter, r *http.
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/posts/views/{id} [put]
-func (controller *PostController) UpdatePostViewsById(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) UpdatePostViewsById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	postId, err := strconv.Atoi(id)
 	if err != nil {
@@ -228,14 +228,13 @@ func (controller *PostController) UpdatePostViewsById(w http.ResponseWriter, r *
 // @Tags		Posts
 // @Accept		json
 // @Produce		json
-// @Param		Authorization	header	string	true	"Authentication header passed like this Bearer T"
 // @Param		id		path		uint64		true	"User Id"
 // @Success		200		{object}	entity.Response		"Login User success response with Token"
 // @Failure		400		{object}	entity.Response		"Bad request"
 // @Failure		401		{object}	entity.Response		"Unauthorized"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/posts/users/{id} [get]
-func (controller *PostController) GetUserPosts(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	userId, err := strconv.Atoi(id)
 	if err != nil {
@@ -244,12 +243,6 @@ func (controller *PostController) GetUserPosts(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = utils.ValidateAuthToken(userId, r.Context())
-	if err != nil {
-		response := entity.NewResponseObject(nil, err.Error(), http.StatusUnauthorized)
-		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
-		return
-	}
 	response := controller.service.GetUserPosts(userId)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
@@ -263,15 +256,15 @@ func (controller *PostController) GetUserPosts(w http.ResponseWriter, r *http.Re
 // @Success		200		{object}	entity.Response		"Normal response"
 // @Failure		500		{object}	entity.Response		"Internal server error"
 // @Router		/posts/tags [get]
-func (controller *PostController) GetTags(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) GetTags(w http.ResponseWriter, r *http.Request) {
 	response := controller.service.GetTags()
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
-func (controller *PostController) GetCommentsByPostId(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) GetCommentsByPostId(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (controller *PostController) CreateCommentByPostId(w http.ResponseWriter, r *http.Request) {
+func (controller *PostHandler) CreateCommentByPostId(w http.ResponseWriter, r *http.Request) {
 
 }

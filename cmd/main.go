@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"sociot/config"
-	controller "sociot/internal/controller"
+	handler "sociot/internal/handler"
 	repo "sociot/internal/repository"
 	service "sociot/internal/service"
 
@@ -51,45 +51,45 @@ func (server *Server) MountHandlers() {
 	versionOne.Route("/v1", func(router chi.Router) {
 		postRepo := repo.NewPostRepository(server.AppConfig.DB)
 		postService := service.NewPostService(postRepo, server.AppConfig.Token)
-		postController := controller.NewPostController(postService)
+		postHandler := handler.NewPostHandler(postService)
 
 		postRouter := chi.NewRouter()
-		postRouter.Get("/", postController.GetPosts)
-		postRouter.Get("/{id}", postController.GetPostById)
-		postRouter.Get("/tags", postController.GetTags)
-		postRouter.Put("/views/{id}", postController.UpdatePostViewsById)
+		postRouter.Get("/", postHandler.GetPosts)
+		postRouter.Get("/{id}", postHandler.GetPostById)
+		postRouter.Get("/tags", postHandler.GetTags)
+		postRouter.Put("/views/{id}", postHandler.UpdatePostViewsById)
+		postRouter.Get("/users/{id}", postHandler.GetUserPosts)
 		postRouter.Group(func(r chi.Router) {
 			r.Use(jwtauth.Verifier(server.AppConfig.Token))
 			r.Use(jwtauth.Authenticator)
-			r.Get("/users/{id}", postController.GetUserPosts)
-			r.Post("/", postController.CreatePost)
-			r.Put("/{id}", postController.UpdatePostById)
-			r.Delete("/{id}", postController.DeletePostById)
+			r.Post("/", postHandler.CreatePost)
+			r.Put("/{id}", postHandler.UpdatePostById)
+			r.Delete("/{id}", postHandler.DeletePostById)
 		})
 
 		userRepo := repo.NewUserRepository(server.AppConfig.DB, postRepo)
 		userService := service.NewUserService(userRepo, server.AppConfig.Token)
-		userController := controller.NewUserController(userService)
+		userHandler := handler.NewUserHandler(userService)
 
 		userRouter := chi.NewRouter()
-		userRouter.Get("/", userController.GetUsers)
-		userRouter.Post("/", userController.CreateUser)
-		userRouter.Post("/login", userController.LoginUser)
+		userRouter.Get("/", userHandler.GetUsers)
+		userRouter.Post("/", userHandler.CreateUser)
+		userRouter.Post("/login", userHandler.LoginUser)
 		userRouter.Group(func(r chi.Router) {
 			r.Use(jwtauth.Verifier(server.AppConfig.Token))
 			r.Use(jwtauth.Authenticator)
-			r.Get("/{id}", userController.GetUserById)
-			r.Put("/{id}", userController.UpdateUserById)
-			r.Put("/password/{id}", userController.UpdateUserPasswordById)
-			r.Delete("/{id}", userController.DeleteUserById)
+			r.Get("/{id}", userHandler.GetUserById)
+			r.Put("/{id}", userHandler.UpdateUserById)
+			r.Put("/password/{id}", userHandler.UpdateUserPasswordById)
+			r.Delete("/{id}", userHandler.DeleteUserById)
 		})
 
 		generalRepo := repo.NewGeneralRepository(server.AppConfig.DB)
 		generalService := service.NewGeneralService(generalRepo)
-		generalController := controller.NewGeneralController(generalService)
+		generalHandler := handler.NewGeneralHandler(generalService)
 
 		generalRouter := chi.NewRouter()
-		generalRouter.Get("/", generalController.Search)
+		generalRouter.Get("/", generalHandler.Search)
 
 		router.Mount("/search", generalRouter)
 		router.Mount("/users", userRouter)

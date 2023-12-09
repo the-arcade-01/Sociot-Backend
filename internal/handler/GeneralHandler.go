@@ -6,12 +6,12 @@ import (
 	"sociot/internal/service"
 )
 
-type GeneralController struct {
+type GeneralHandler struct {
 	service service.GeneralService
 }
 
-func NewGeneralController(service service.GeneralService) *GeneralController {
-	return &GeneralController{
+func NewGeneralHandler(service service.GeneralService) *GeneralHandler {
+	return &GeneralHandler{
 		service: service,
 	}
 }
@@ -28,7 +28,7 @@ func NewGeneralController(service service.GeneralService) *GeneralController {
 // @Failure 	400		{object}	entity.Response 	"Bad request"
 // @Failure 	500 	{object} 	entity.Response 	"Internal server error"
 // @Router 		/search [get]
-func (controller *GeneralController) Search(w http.ResponseWriter, r *http.Request) {
+func (controller *GeneralHandler) Search(w http.ResponseWriter, r *http.Request) {
 	option := r.URL.Query().Get("option")
 	search := r.URL.Query().Get("search")
 
