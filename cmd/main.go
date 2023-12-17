@@ -3,18 +3,18 @@ package main
 import (
 	"log"
 	"net/http"
-	"sociot/config"
-	handler "sociot/internal/handler"
-	repo "sociot/internal/repository"
-	service "sociot/internal/service"
-
-	_ "sociot/docs"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/jwtauth/v5"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
+
+	"sociot/config"
+	_ "sociot/docs"
+	handler "sociot/internal/handler"
+	repo "sociot/internal/repository"
+	service "sociot/internal/service"
 )
 
 type Server struct {
@@ -75,6 +75,7 @@ func (server *Server) MountHandlers() {
 		userRouter.Get("/", userHandler.GetUsers)
 		userRouter.Post("/", userHandler.CreateUser)
 		userRouter.Post("/login", userHandler.LoginUser)
+		userRouter.Get("/stats/{id}", userHandler.GetUserStats)
 		userRouter.Group(func(r chi.Router) {
 			r.Use(jwtauth.Verifier(server.AppConfig.Token))
 			r.Use(jwtauth.Authenticator)

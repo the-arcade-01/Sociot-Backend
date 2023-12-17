@@ -3,11 +3,13 @@ package utils
 /*
 *   env Constants
  */
-var PORT = "PORT"
-var JWT_SECRET = "JWT_SECRET"
-var JWT_ALGO = "HS256"
-var DB_DRIVER = "DB_DRIVER"
-var DB_URL = "DB_URL"
+var (
+	PORT       = "PORT"
+	JWT_SECRET = "JWT_SECRET"
+	JWT_ALGO   = "HS256"
+	DB_DRIVER  = "DB_DRIVER"
+	DB_URL     = "DB_URL"
+)
 
 var USER_ID = "userId"
 
@@ -84,6 +86,15 @@ SELECT
         FROM posts p
         WHERE p.userId = u.userId
     ) AS postCount,
+    COALESCE((
+        SELECT SUM(views)
+        FROM post_views pv
+        WHERE pv.postId IN 
+        (
+            SELECT postId FROM posts p
+            WHERE p.userId = u.userId
+        )
+    ), 0) AS viewCount,
     u.createdAt
 FROM
     users u
@@ -119,4 +130,34 @@ HAVING
     p.title LIKE '%v' 
 ORDER BY 
     v.views DESC;
+`
+
+/*
+*   GetUserStats queries
+*   Note: Don't make changes without discussion
+ */
+
+const GET_USER_STATS = `
+SELECT
+    u.userId,
+    u.userName,
+    (
+        SELECT COUNT(postId)
+        FROM posts p
+        WHERE p.userId = u.userId
+    ) AS postCount,
+    COALESCE((
+        SELECT SUM(views)
+        FROM post_views pv
+        WHERE pv.postId IN 
+        (
+            SELECT postId FROM posts p
+            WHERE p.userId = u.userId
+        )
+    ), 0) AS viewCount,
+    u.createdAt
+FROM
+    users u
+WHERE
+    u.userId = ?;
 `
