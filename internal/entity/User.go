@@ -28,6 +28,7 @@ type UserSearch struct {
 	UserName  string    `json:"username"`
 	PostCount int       `json:"postCount"`
 	ViewCount int       `json:"viewCount"`
+	Votes     int       `json:"votes"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -79,6 +80,7 @@ func ScanIntoUserSearch(rows *sql.Rows) (*UserSearch, error) {
 		&user.UserName,
 		&user.PostCount,
 		&user.ViewCount,
+		&user.Votes,
 		&user.CreatedAt,
 	)
 	if err != nil {

@@ -31,6 +31,11 @@ SELECT
         JOIN post_tags pt ON t.tagId = pt.tagId 
         WHERE pt.postId = p.postId
     ) AS tags,
+    COALESCE((
+        SELECT SUM(vote_type)
+        FROM votes vt
+        WHERE vt.postId = p.postId
+    ), 0) AS votes,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -59,6 +64,11 @@ SELECT
         JOIN post_tags pt ON t.tagId = pt.tagId 
         WHERE pt.postId = p.postId
     ) AS tags,
+    COALESCE((
+        SELECT SUM(vote_type)
+        FROM votes vt
+        WHERE vt.postId = p.postId
+    ), 0) AS votes,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -70,6 +80,68 @@ LEFT JOIN
     users u ON p.userId = u.userId
 ORDER BY 
     %v DESC;
+`
+
+const GET_USERS_POSTS = `
+SELECT 
+    u.userId,
+    u.userName,
+    p.postId,
+    p.title,
+    p.content,
+    ( 
+        SELECT GROUP_CONCAT(t.tag)
+        FROM tags t
+        JOIN post_tags pt ON pt.tagId = t.tagId
+        WHERE pt.postId = p.postId
+    ) AS tags,
+    COALESCE((
+        SELECT SUM(vote_type)
+        FROM votes vt
+        WHERE vt.postId = p.postId
+    ), 0) AS votes,
+    v.views,
+    p.createdAt,
+    p.updatedAt
+FROM 
+    posts p
+LEFT JOIN 
+    post_views v ON p.postId = v.postId
+LEFT JOIN 
+    users u ON p.userId = u.userId
+WHERE
+    u.userId = %v
+`
+
+const GET_POST_BY_ID = `
+SELECT 
+    u.userId,
+    u.userName,
+    p.postId,
+    p.title,
+    p.content,
+    ( 
+        SELECT GROUP_CONCAT(t.tag)
+        FROM tags t
+        JOIN post_tags pt ON pt.tagId = t.tagId
+        WHERE pt.postId = p.postId
+    ) AS tags,
+    COALESCE((
+        SELECT SUM(vote_type)
+        FROM votes vt
+        WHERE vt.postId = p.postId
+    ), 0) AS votes,
+    v.views,
+    p.createdAt,
+    p.updatedAt
+FROM 
+    posts p
+LEFT JOIN 
+    post_views v ON p.postId = v.postId
+LEFT JOIN 
+    users u ON p.userId = u.userId
+WHERE
+    p.postId = %v
 `
 
 /*
@@ -95,6 +167,11 @@ SELECT
             WHERE p.userId = u.userId
         )
     ), 0) AS viewCount,
+    COALESCE((
+        SELECT SUM(vote_type)
+        FROM votes vt
+        WHERE vt.userId = u.userId
+    ), 0) AS votes,
     u.createdAt
 FROM
     users u
@@ -117,6 +194,11 @@ SELECT
         JOIN post_tags pt ON t.tagId = pt.tagId 
         WHERE pt.postId = p.postId
     ) AS tags,
+    COALESCE((
+        SELECT SUM(vote_type)
+        FROM votes vt
+        WHERE vt.postId = p.postId
+    ), 0) AS votes,
     v.views,
     p.createdAt,
     p.updatedAt
@@ -155,6 +237,11 @@ SELECT
             WHERE p.userId = u.userId
         )
     ), 0) AS viewCount,
+    COALESCE((
+        SELECT SUM(vote_type)
+        FROM votes vt
+        WHERE vt.userId = u.userId
+    ), 0) AS votes,
     u.createdAt
 FROM
     users u
