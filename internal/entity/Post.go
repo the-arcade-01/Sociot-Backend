@@ -13,6 +13,7 @@ type Post struct {
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	Tags      []string  `json:"tags"`
+	Votes     int       `json:"votes"`
 	Views     int       `json:"views"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -47,6 +48,7 @@ func ScanIntoPost(rows *sql.Rows) (*Post, error) {
 		&post.Title,
 		&post.Content,
 		&tagsList,
+		&post.Votes,
 		&post.Views,
 		&post.CreatedAt,
 		&post.UpdatedAt,

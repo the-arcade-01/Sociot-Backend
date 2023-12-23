@@ -3,9 +3,10 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"strconv"
+
 	"sociot/internal/entity"
 	"sociot/internal/utils"
-	"strconv"
 )
 
 type UserRepository struct {
@@ -23,7 +24,6 @@ func NewUserRepository(DB *sql.DB, repo PostRepository) UserRepository {
 func (repo *UserRepository) GetUsers() ([]*entity.UserDetails, error) {
 	query := `SELECT * FROM users`
 	rows, err := repo.db.Query(query)
-
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +167,21 @@ func (repo *UserRepository) LoginUser(user *entity.User) (*entity.UserDetails, e
 	}
 
 	return userDetails, nil
+}
+
+func (repo *UserRepository) GetUserStats(userId int) (*entity.UserSearch, error) {
+	rows, err := repo.db.Query(utils.GET_USER_STATS, userId)
+	if err != nil {
+		return nil, err
+	}
+	var userStats *entity.UserSearch
+	for rows.Next() {
+		userStats, err = entity.ScanIntoUserSearch(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return userStats, nil
 }
 
 func (repo *UserRepository) CheckExistingUser(user *entity.User) error {

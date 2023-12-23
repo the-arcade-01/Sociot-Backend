@@ -60,3 +60,16 @@ CREATE TABLE IF NOT EXISTS `sociot`.`post_tags` (
     FOREIGN KEY (postId) REFERENCES `sociot`.`posts`(postId),
     FOREIGN KEY (tagId) REFERENCES `sociot`.`tags`(tagId)
 );
+
+-- ------------------
+-- Table `votes`
+-- ------------------
+
+CREATE TABLE IF NOT EXISTS `sociot`.`votes` (
+    `userId` INT NOT NULL,
+    `postId` INT NOT NULL,
+    `vote_type` INT NOT NULL DEFAULT 0,
+    UNIQUE KEY unique_vote (userId, postId),
+    FOREIGN KEY (userId) REFERENCES `sociot`.`users`(userId),
+    FOREIGN KEY (postId) REFERENCES `sociot`.`posts`(postId)
+);
