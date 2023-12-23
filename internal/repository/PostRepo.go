@@ -8,12 +8,14 @@ import (
 )
 
 type PostRepository struct {
-	db *sql.DB
+	db        *sql.DB
+	votesRepo VotesRepo
 }
 
-func NewPostRepository(DB *sql.DB) PostRepository {
+func NewPostRepository(DB *sql.DB, repo VotesRepo) PostRepository {
 	return PostRepository{
-		db: DB,
+		db:        DB,
+		votesRepo: repo,
 	}
 }
 
@@ -146,6 +148,8 @@ func (repo *PostRepository) DeletePostById(postId int) error {
 		return err
 	}
 
+	repo.votesRepo.DeletePostVotesByPostId(postId)
+
 	_, err = repo.db.Exec(
 		`DELETE FROM posts WHERE postId = ?`,
 		postId,
@@ -250,7 +254,10 @@ func (repo *PostRepository) DeletePostByUserId(userId int) error {
 
 	for _, postId := range postIds {
 		repo.DeleteTagsByPostId(postId)
+		repo.votesRepo.DeletePostVotesByPostId(postId)
 	}
+
+	repo.votesRepo.DeletePostVotesByUserId(userId)
 
 	query = `DELETE FROM posts WHERE userId = ?`
 	_, err = repo.db.Exec(query, userId)

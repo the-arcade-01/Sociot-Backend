@@ -62,7 +62,7 @@ func (server *Server) MountHandlers() {
 			r.Get("/status", votesHandler.GetUserVoted)
 		})
 
-		postRepo := repo.NewPostRepository(server.AppConfig.DB)
+		postRepo := repo.NewPostRepository(server.AppConfig.DB, votesRepo)
 		postService := service.NewPostService(postRepo, server.AppConfig.Token)
 		postHandler := handler.NewPostHandler(postService)
 

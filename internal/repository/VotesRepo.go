@@ -65,3 +65,11 @@ func (repo VotesRepo) GetUserVoted(postId int, userId int) (int, error) {
 	}
 	return status, nil
 }
+
+func (repo VotesRepo) DeletePostVotesByPostId(postId int) {
+	repo.db.Exec(`DELETE FROM votes WHERE postId = ?`, postId)
+}
+
+func (repo VotesRepo) DeletePostVotesByUserId(userId int) {
+	repo.db.Exec(`DELETE FROM votes WHERE userId = ?`, userId)
+}
