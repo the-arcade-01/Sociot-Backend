@@ -28,6 +28,11 @@ func (repo VotesRepo) UpdatePostVotesById(postId int, userId int, voteType strin
 	err := repo.db.QueryRow(query, postId, userId).Scan(&voteValue)
 
 	if err == sql.ErrNoRows {
+		var postPresent int
+		err = repo.db.QueryRow(`SELECT postId FROM posts WHERE postId = ?`, postId).Scan(&postPresent)
+		if err == sql.ErrNoRows {
+			return nil
+		}
 		query = `INSERT INTO votes (userId, postId, vote_type) VALUES (?, ?, ?)`
 		_, err = repo.db.Exec(query, userId, postId, updateVoteValue)
 		return err
