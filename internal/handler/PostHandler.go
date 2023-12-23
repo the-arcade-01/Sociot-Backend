@@ -260,11 +260,3 @@ func (controller *PostHandler) GetTags(w http.ResponseWriter, r *http.Request) {
 	response := controller.service.GetTags()
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
-
-func (controller *PostHandler) GetCommentsByPostId(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (controller *PostHandler) CreateCommentByPostId(w http.ResponseWriter, r *http.Request) {
-
-}

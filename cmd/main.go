@@ -49,6 +49,19 @@ func (server *Server) MountHandlers() {
 	versionOne := chi.NewRouter()
 
 	versionOne.Route("/v1", func(router chi.Router) {
+		votesRepo := repo.NewVotesRepo(server.AppConfig.DB)
+		votesService := service.NewVotesService(votesRepo)
+		votesHandler := handler.NewVotesHandler(votesService)
+
+		votesRouter := chi.NewRouter()
+		votesRouter.Get("/{postId}", votesHandler.GetVotesCountById)
+		votesRouter.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(server.AppConfig.Token))
+			r.Use(jwtauth.Authenticator)
+			r.Put("/", votesHandler.UpdatePostVotesById)
+			r.Get("/status", votesHandler.GetUserVoted)
+		})
+
 		postRepo := repo.NewPostRepository(server.AppConfig.DB)
 		postService := service.NewPostService(postRepo, server.AppConfig.Token)
 		postHandler := handler.NewPostHandler(postService)
@@ -95,6 +108,7 @@ func (server *Server) MountHandlers() {
 		router.Mount("/search", generalRouter)
 		router.Mount("/users", userRouter)
 		router.Mount("/posts", postRouter)
+		router.Mount("/votes", votesRouter)
 	})
 	server.Router.Get("/swagger/*", httpSwagger.WrapHandler)
 	server.Router.Mount("/api", versionOne)
