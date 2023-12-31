@@ -27,6 +27,8 @@ type UserSearch struct {
 	UserId    int       `json:"userId"`
 	UserName  string    `json:"username"`
 	PostCount int       `json:"postCount"`
+	ViewCount int       `json:"viewCount"`
+	Votes     int       `json:"votes"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -45,12 +47,12 @@ type UpdateUserPasswordReqBody struct {
 
 type CreateUserRequestBody struct {
 	UserName string `json:"username" validate:"required,min=4"`
-	Email    string `json:"email" validate:"required,email"`
+	Email    string `json:"email"    validate:"required,email"`
 	Password string `json:"password" validate:"required,min=4"`
 }
 
 type LoginUserRequestBody struct {
-	Email    string `json:"email" validate:"required,email"`
+	Email    string `json:"email"    validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -77,6 +79,8 @@ func ScanIntoUserSearch(rows *sql.Rows) (*UserSearch, error) {
 		&user.UserId,
 		&user.UserName,
 		&user.PostCount,
+		&user.ViewCount,
+		&user.Votes,
 		&user.CreatedAt,
 	)
 	if err != nil {

@@ -3,18 +3,18 @@ package main
 import (
 	"log"
 	"net/http"
-	"sociot/config"
-	handler "sociot/internal/handler"
-	repo "sociot/internal/repository"
-	service "sociot/internal/service"
-
-	_ "sociot/docs"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/jwtauth/v5"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
+
+	"sociot/config"
+	_ "sociot/docs"
+	handler "sociot/internal/handler"
+	repo "sociot/internal/repository"
+	service "sociot/internal/service"
 )
 
 type Server struct {
@@ -49,7 +49,20 @@ func (server *Server) MountHandlers() {
 	versionOne := chi.NewRouter()
 
 	versionOne.Route("/v1", func(router chi.Router) {
-		postRepo := repo.NewPostRepository(server.AppConfig.DB)
+		votesRepo := repo.NewVotesRepo(server.AppConfig.DB)
+		votesService := service.NewVotesService(votesRepo)
+		votesHandler := handler.NewVotesHandler(votesService)
+
+		votesRouter := chi.NewRouter()
+		votesRouter.Get("/{postId}", votesHandler.GetVotesCountById)
+		votesRouter.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(server.AppConfig.Token))
+			r.Use(jwtauth.Authenticator)
+			r.Put("/", votesHandler.UpdatePostVotesById)
+			r.Get("/status", votesHandler.GetUserVoted)
+		})
+
+		postRepo := repo.NewPostRepository(server.AppConfig.DB, votesRepo)
 		postService := service.NewPostService(postRepo, server.AppConfig.Token)
 		postHandler := handler.NewPostHandler(postService)
 
@@ -75,6 +88,7 @@ func (server *Server) MountHandlers() {
 		userRouter.Get("/", userHandler.GetUsers)
 		userRouter.Post("/", userHandler.CreateUser)
 		userRouter.Post("/login", userHandler.LoginUser)
+		userRouter.Get("/stats/{id}", userHandler.GetUserStats)
 		userRouter.Group(func(r chi.Router) {
 			r.Use(jwtauth.Verifier(server.AppConfig.Token))
 			r.Use(jwtauth.Authenticator)
@@ -94,6 +108,7 @@ func (server *Server) MountHandlers() {
 		router.Mount("/search", generalRouter)
 		router.Mount("/users", userRouter)
 		router.Mount("/posts", postRouter)
+		router.Mount("/votes", votesRouter)
 	})
 	server.Router.Get("/swagger/*", httpSwagger.WrapHandler)
 	server.Router.Mount("/api", versionOne)

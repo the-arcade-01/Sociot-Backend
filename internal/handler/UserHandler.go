@@ -3,12 +3,13 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	entity "sociot/internal/entity"
-	service "sociot/internal/service"
-	"sociot/internal/utils"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+
+	entity "sociot/internal/entity"
+	service "sociot/internal/service"
+	"sociot/internal/utils"
 )
 
 type UserHandler struct {
@@ -264,6 +265,25 @@ func (controller *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request)
 	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }
 
-func (controller *UserHandler) GetUserComments(w http.ResponseWriter, r *http.Request) {
-
+// GetUserStats
+// @Summary	Returns User stats
+// @Description Returns User stats
+// @Tags		Users
+// @Accept		json
+// @Produce		json
+// @Param		id		path		uint64		true	"User Id"
+// @Success		200		{object}	entity.Response		"Response with user stats"
+// @Failure		400		{object}	entity.Response		"Bad request"
+// @Failure		500		{object}	entity.Response		"Internal server error"
+// @Router		/users/stats/{id} [get]
+func (controller *UserHandler) GetUserStats(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		response := entity.NewResponseObject(nil, err.Error(), http.StatusBadRequest)
+		entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
+		return
+	}
+	response := controller.service.GetUserStats(userId)
+	entity.ResponseWithJSON(w, response.Meta.StatusCode, response)
 }

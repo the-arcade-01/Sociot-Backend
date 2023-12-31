@@ -8,12 +8,14 @@ import (
 )
 
 type PostRepository struct {
-	db *sql.DB
+	db        *sql.DB
+	votesRepo VotesRepo
 }
 
-func NewPostRepository(DB *sql.DB) PostRepository {
+func NewPostRepository(DB *sql.DB, repo VotesRepo) PostRepository {
 	return PostRepository{
-		db: DB,
+		db:        DB,
+		votesRepo: repo,
 	}
 }
 
@@ -22,6 +24,8 @@ func (repo *PostRepository) GetPosts(sort string, tag string) ([]*entity.Post, e
 	switch sort {
 	case "new":
 		sortParam = "p.createdAt"
+	case "vote":
+		sortParam = "votes"
 	default:
 		sortParam = "v.views"
 	}
@@ -55,32 +59,8 @@ func (repo *PostRepository) GetPosts(sort string, tag string) ([]*entity.Post, e
 }
 
 func (repo *PostRepository) GetPostById(postId int) (*entity.Post, error) {
-	query := `
-SELECT 
-    u.userId,
-    u.userName,
-    p.postId,
-    p.title,
-    p.content,
-    ( 
-        SELECT GROUP_CONCAT(t.tag)
-        FROM tags t
-        JOIN post_tags pt ON pt.tagId = t.tagId
-        WHERE pt.postId = p.postId
-    ) AS tags,
-    v.views,
-    p.createdAt,
-    p.updatedAt
-FROM 
-    posts p
-LEFT JOIN 
-    post_views v ON p.postId = v.postId
-LEFT JOIN 
-    users u ON p.userId = u.userId
-WHERE
-    p.postId = ?
-	`
-	rows, err := repo.db.Query(query, postId)
+	query := fmt.Sprintf(utils.GET_POST_BY_ID, postId)
+	rows, err := repo.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +126,8 @@ func (repo *PostRepository) DeletePostById(postId int) error {
 		return err
 	}
 
+	repo.votesRepo.DeletePostVotesByPostId(postId)
+
 	_, err = repo.db.Exec(
 		`DELETE FROM posts WHERE postId = ?`,
 		postId,
@@ -171,32 +153,8 @@ func (repo *PostRepository) UpdatePostViewsById(postId int) error {
 }
 
 func (repo *PostRepository) GetUserPosts(userId int) ([]*entity.Post, error) {
-	query := `
-SELECT 
-    u.userId,
-    u.userName,
-    p.postId,
-    p.title,
-    p.content,
-    ( 
-        SELECT GROUP_CONCAT(t.tag)
-        FROM tags t
-        JOIN post_tags pt ON pt.tagId = t.tagId
-        WHERE pt.postId = p.postId
-    ) AS tags,
-    v.views,
-    p.createdAt,
-    p.updatedAt
-FROM 
-    posts p
-LEFT JOIN 
-    post_views v ON p.postId = v.postId
-LEFT JOIN 
-    users u ON p.userId = u.userId
-WHERE
-    u.userId = ?
-	`
-	rows, err := repo.db.Query(query, userId)
+	query := fmt.Sprintf(utils.GET_USERS_POSTS, userId)
+	rows, err := repo.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +208,10 @@ func (repo *PostRepository) DeletePostByUserId(userId int) error {
 
 	for _, postId := range postIds {
 		repo.DeleteTagsByPostId(postId)
+		repo.votesRepo.DeletePostVotesByPostId(postId)
 	}
+
+	repo.votesRepo.DeletePostVotesByUserId(userId)
 
 	query = `DELETE FROM posts WHERE userId = ?`
 	_, err = repo.db.Exec(query, userId)
